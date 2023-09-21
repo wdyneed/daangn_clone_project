@@ -1,1 +1,1 @@
-# daangn_clone_project
+# django_daangn_RightNow
