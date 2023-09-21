@@ -7,7 +7,6 @@ from . import views
 app_name = "daangn_app"
 
 urlpatterns = [
-    path("admin/", admin.site.urls),
     path("main/", views.main_view, name="main"),
     path("search/", views.search_view, name="search"),
     path("login/", views.login_view, name="login"),
