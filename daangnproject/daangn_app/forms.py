@@ -12,6 +12,6 @@ class PostForm(forms.ModelForm):
             "location",
             "category",
             "wt_location",
-            "images",
+            "product_image",
             "updated",
         ]

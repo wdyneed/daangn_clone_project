@@ -6,6 +6,7 @@ class Post(models.Model):
     title = models.CharField(max_length=200, verbose_name="글 제목")
     price = models.IntegerField(verbose_name="가격")
     description = models.TextField(verbose_name="설명")
+    product_image = models.ImageField(null=True, upload_to="", blank = True)
     location = models.CharField(max_length=200, verbose_name="사는 곳")
     category = models.CharField(max_length=255)
     view_count = models.PositiveIntegerField(default=0, verbose_name="조회수")
