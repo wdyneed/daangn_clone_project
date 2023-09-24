@@ -30,7 +30,7 @@ def trade_post_view(request, post_id):
         post.view_count += 1
         post.save()
         request.session['post_viewed_%s' % post_id] = True
-    return render(request, 'dangun_app/trade_post.html', { post : 'post' })
+    return render(request, 'daangn_app/trade_post.html', { post : 'post' })
 
 
 def create_form_view(request):
