@@ -4,19 +4,23 @@ from .forms import PostForm
 
 
 def main_view(request):
-    return render(request, "dangun_app/main.html")
+    return render(request, "daangn_app/main.html")
 
 
 def search_view(request):
-    return render(request, "dangun_app/search.html")
+    return render(request, "daangn_app/search.html")
 
 
 def login_view(request):
-    return render(request, "dangun_app/login.html")
+    return render(request, "registration/login.html")
+
+
+def register_view(request):
+    return render(request, "registration/register.html")
 
 
 def trade_view(request):
-    return render(request, "dangun_app/trade.html")
+    return render(request, "daangn_app/trade.html")
 
 
 def create_form_view(request):
@@ -42,7 +46,7 @@ def create_form_view(request):
         form = PostForm()
 
     context = {"form": form}
-    return render(request, "dangun_app/chat.html", context)
+    return render(request, "daangn_app/chat.html", context)
 
 
 def create_or_edit_post(request, post_id=None):
@@ -63,4 +67,4 @@ def create_or_edit_post(request, post_id=None):
         form = PostForm(instance=post)
 
     context = {"form": form}
-    return render(request, "dangun_app/write.html", context)
+    return render(request, "daangn_app/write.html", context)
