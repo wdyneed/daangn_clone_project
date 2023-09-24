@@ -28,14 +28,14 @@
               </div>
               {% if request.user.username == post.user.username %}
                 <div class="flex-box button-box">
-                  <a href="{% url 'dangun_app:edit' post.id %}">
+                  {% comment %} <a href="{% url 'dangun_app:edit' post.id %}"> {% endcomment %}
                     <button class="grey">수정하기</button>
                   </a>
                   <button class="orange">채팅보기</button>
                 </div>
               {% else %}
                 <div class="button-box">
-                  <a href="{% url 'dangun_app:chat' %}">
+                  {% comment %} <a href="{% url 'dangun_app:chat' %}"> {% endcomment %}
                     <button class="orange">채팅하기</button>
                   </a>
                 </div>
@@ -51,9 +51,9 @@
               <p>{{ post.description }}</p>
               <div class="location-views-box flex-box between">
                 <p>희망 거래장소 |
-                  {{ post.location }}</p>
+                  {{ post.wt_location }}</p>
                 <p>조회수
-                  {{ post.view_num }}</p>
+                  {{ post.view_count }}</p>
               </div>
             </div>
           {% endblock %}
