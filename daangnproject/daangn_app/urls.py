@@ -10,6 +10,7 @@ urlpatterns = [
     path("main/", views.main_view, name="main"),
     path("search/", views.search_view, name="search"),
     path("login/", views.login_view, name="login"),
+    path("register/", views.register_view, name="register"),
     path("create/form/", views.create_form_view, name="create_form"),
     path("write/", views.create_or_edit_post, name="write"),
     path("edit/<int:post_id>/", views.create_or_edit_post, name="edit"),
