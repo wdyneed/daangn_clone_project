@@ -14,6 +14,7 @@ urlpatterns = [
     path("write/", views.create_or_edit_post, name="write"),
     path("edit/<int:post_id>/", views.create_or_edit_post, name="edit"),
     path("trade/", views.trade_view, name="trade"),
+    path('post/', views.trade_post_view, name='post'),
 ]
 
 if settings.DEBUG:

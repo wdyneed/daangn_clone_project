@@ -1,4 +1,4 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from .models import Post
 from .forms import PostForm
 
@@ -17,6 +17,16 @@ def login_view(request):
 
 def trade_view(request):
     return render(request, "dangun_app/trade.html")
+
+def trade_post_view(request, post_id):
+    post = get_object_or_404(Post, id=post_id)
+    if request.method == 'POST':
+        pass
+    if 'post_viewed_%s' % post_id not in request.session:
+        post.view_count += 1
+        post.save()
+        request.session['post_viewed_%s' % post_id] = True
+    return render(request, 'dangun_app/trade_post.html', { post : 'post' })
 
 
 def create_form_view(request):
