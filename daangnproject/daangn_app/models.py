@@ -6,7 +6,6 @@ class Post(models.Model):
     title = models.CharField(max_length=200, verbose_name="글 제목")
     price = models.IntegerField(verbose_name="가격")
     description = models.TextField(verbose_name="설명")
-    product_image = models.ImageField(null=True, upload_to="", blank = True)
     location = models.CharField(max_length=200, verbose_name="사는 곳")
     category = models.CharField(max_length=255)
     view_count = models.PositiveIntegerField(default=0, verbose_name="조회수")
@@ -32,4 +31,19 @@ class ChatMessage(models.Model):
     sender = models.ForeignKey(UserInfo, on_delete=models.CASCADE)
     send_at = models.DateTimeField(auto_now_add=True)
     chat_img = models.ImageField(upload_to="chat")
+    
+#이미지 업로드 경로
+def image_upload_path(instance, filename):
+    return f'{instance.post.id}/{filename}'
+    
+# 다중 이미지 업로드를 위한 테이블
+class PostImage(models.Model):
+    post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='image')
+    image = models.ImageField(null=True, upload_to="image_upload_path", blank = True)
+    
+    def __int__(self):
+        return self.id
+
+    class Meta:
+        db_table = 'post_image'
     
