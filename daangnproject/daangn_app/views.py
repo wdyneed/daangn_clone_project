@@ -1,10 +1,15 @@
-from django.shortcuts import render, redirect, get_object_or_404
+from django.shortcuts import render, redirect, get_object_or_404, reverse
 from .models import Post, UserInfo, PostImage
-from .forms import PostForm
+from .forms import PostForm, LoginForm
+from django.contrib import messages
 from django.db.models import Q
 from .serializers import PostSerializer, PostImageSerializer
 from rest_framework import viewsets, status
 from rest_framework.response import Response
+from django.contrib.auth import authenticate, login, logout
+from . import forms, models
+from django.views.generic import FormView
+from django.views import View
 
 def main_view(request):
     return render(request, "daangn_app/main.html")
@@ -118,3 +123,62 @@ class PostImageViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         post = Post.objects.get(id=self.kwargs['post_pk'])
         serializer.save(post=post)
+        
+        
+        
+class RegisterView(FormView):
+    template_name = "registration/register.html"
+    form_class = forms.RegisterForm
+    success_url = "/login/"
+
+    def form_valid(self, form):
+        form.save()
+        email = form.cleaned_data.get("email")
+        password = form.cleaned_data.get("password")
+        user = authenticate(self.request, username=email, password=password)
+        if user is not None:
+            login(self.request, user)
+
+        if hasattr(user, "verify_email") and callable(getattr(user, "verify_email")):
+            user.verify_email()
+
+        return super().form_valid(form)
+
+
+def complete_verification(request, key):
+    try:
+        user = models.User.objects.get(email_secret=key)
+        user.email_verified = True
+        user.email_secret = ""
+        user.save()
+    except models.User.DoesNotExist:
+        pass
+    return render(request, "registration/login.html")
+
+
+class LoginView(View):
+    def get(self, request):
+        form = LoginForm()
+        context = {"form": form}
+        return render(request, "registration/login.html", context)
+
+    def post(self, request):
+        form = LoginForm(request.POST)
+        if form.is_valid():
+            email = form.cleaned_data.get("email")
+            password = form.cleaned_data.get("password")
+            user = authenticate(request, username=email, password=password)
+            if user is not None:
+                login(request, user)
+                return redirect("/")  # Redirect to the main page
+            else:
+                # 로그인 실패 메시지를 추가하고 다시 로그인 페이지를 렌더링
+                messages.error(request, "로그인에 실패했습니다. 올바른 이메일과 비밀번호를 입력하세요.")
+
+        context = {"form": form}
+        return render(request, "registration/login.html", context)
+
+
+def log_out(request):
+    logout(request)
+    return redirect(reverse("daangn_app:login"))
