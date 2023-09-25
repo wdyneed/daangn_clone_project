@@ -7,7 +7,7 @@ from . import views
 app_name = "daangn_app"
 
 urlpatterns = [
-    path("main/", views.main_view, name="main"),
+    path("", views.main_view, name="main"),
     path("search/", views.search_view, name="search"),
     path("login/", views.login_view, name="login"),
     path("register/", views.register_view, name="register"),
