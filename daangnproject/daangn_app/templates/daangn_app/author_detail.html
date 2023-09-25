@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    {% comment %} 판매자 모든 물품 보는 페이지 {% endcomment %}
+    {% include 'daangn_app/nav.html' %}
+        <div class="user section">
+            <img src="{{ user.user_img }}">
+            <h3> {{ user.user_id }} </h3>
+            <p>{{ user.location }}</p>
+        </div>
+        <div>
+            <a>판매 물품()</a>
+        </div>
+        <div>
+            {% for post in posts %}
+                {{ post.title }}
+                {{ post.price }}
+                {{ post.wt_location }}
+            {% endfor %}
+            
+        </div>
+
+    {% include 'daangn_app/footer.html' %}
+</body>
+</html>
