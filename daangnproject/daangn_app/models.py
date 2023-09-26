@@ -47,7 +47,6 @@ class Post(models.Model):
     title = models.CharField(max_length=200, verbose_name="글 제목")
     price = models.IntegerField(verbose_name="가격")
     description = models.TextField(verbose_name="설명")
-    location = models.CharField(max_length=200, verbose_name="사는 곳")
     category = models.CharField(max_length=255)
     view_count = models.PositiveIntegerField(default=0, verbose_name="조회수")
     created_at = models.DateTimeField(verbose_name="업로드 날짜", auto_now_add=True)

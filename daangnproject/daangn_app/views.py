@@ -100,7 +100,7 @@ def create_form_view(request):
                 title=form.cleaned_data["title"],
                 price=form.cleaned_data["price"],
                 description=form.cleaned_data["description"],
-                location=form.cleaned_data["location"],
+                #location=form.cleaned_data["location"],
                 # wt_location=wt_location,
                 images=request.FILES.get("images"),
             )

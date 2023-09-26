@@ -10,7 +10,7 @@ class PostForm(forms.ModelForm):
             "title",
             "price",
             "description",
-            "location",
+            #"location",
             # "category",
             # "wt_location",
         ]
