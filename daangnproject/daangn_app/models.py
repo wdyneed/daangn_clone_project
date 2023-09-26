@@ -55,6 +55,7 @@ class Post(models.Model):
     wt_location = models.CharField(max_length=300, verbose_name="판매 원하는 장소")
     status = models.CharField(max_length=100, default="판매중", verbose_name="판매 상태")
     author = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="작성자", default='')
+    chat_num = models.PositiveIntegerField(default=0)
     
 class UserInfo(models.Model):
     user_id = models.ForeignKey(User, on_delete=models.CASCADE)
