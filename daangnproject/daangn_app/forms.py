@@ -4,7 +4,6 @@ from . import models
 
 
 class PostForm(forms.ModelForm):
-    
     class Meta:
         model = Post
         fields = [
@@ -12,9 +11,8 @@ class PostForm(forms.ModelForm):
             "price",
             "description",
             "location",
-            "category",
-            "wt_location",
-            "updated",
+            # "category",
+            # "wt_location",
         ]
 
 class LoginForm(forms.Form):

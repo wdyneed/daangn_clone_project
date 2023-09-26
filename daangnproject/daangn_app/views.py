@@ -10,6 +10,8 @@ from django.contrib.auth import authenticate, login, logout
 from . import forms, models
 from django.views.generic import FormView
 from django.views import View
+from django.utils import timezone
+
 
 def main_view(request):
     return render(request, "daangn_app/main.html")
@@ -62,27 +64,28 @@ def create_form_view(request):
     if request.method == "POST":
         form = PostForm(request.POST, request.FILES)
         if form.is_valid():
-            category = request.POST.get("category")
-            wt_location = request.POST.get("wt_location")
+            # wt_location = request.POST.get("wt_location")
 
             post = Post(
                 title=form.cleaned_data["title"],
                 price=form.cleaned_data["price"],
                 description=form.cleaned_data["description"],
                 location=form.cleaned_data["location"],
-                category=category,
-                wt_location=wt_location,
-                #images=request.FILES.get("images"),
+                # wt_location=wt_location,
+                images=request.FILES.get("images"),
             )
             post.save()
 
             return redirect("daangn_app:main")
+        else:
+            # 폼 데이터가 유효하지 않은 경우
+            # 폼에서 발생한 오류 메시지 출력
+            print(form.errors)
     else:
         form = PostForm()
 
     context = {"form": form}
     return render(request, "daangn_app/chat.html", context)
-
 
 def create_or_edit_post(request, post_id=None):
     if post_id:
