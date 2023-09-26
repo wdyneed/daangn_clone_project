@@ -42,9 +42,10 @@ nav{
     border: 1px solid #fa6616;
 }
 
-input{
+.search {
+    width: 280px;
     background-color: #f3f3f3;
-    padding:6px 16px;
+    padding: 6px 16px;
     font-size: 16px;
     border: none;
 }

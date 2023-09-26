@@ -25,6 +25,7 @@ urlpatterns = [
     path('author_detail/<str:author>/', views.author_detail_view, name='author_detail'),
     path('api/', include(router.urls)),
     path("logout/", views.log_out, name="logout"),
+    path('trade-post/<int:post_id>', views.trade_post_view, name='trade-post'),
 ]
 
 if settings.DEBUG:

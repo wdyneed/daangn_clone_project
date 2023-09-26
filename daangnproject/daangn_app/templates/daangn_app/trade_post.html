@@ -35,7 +35,7 @@
                 </div>
               {% else %}
                 <div class="button-box">
-                  <a href="{% url 'daangn_app:chat' %}">
+                  <a href="{% url 'daangn_app:chat' post.author.id %}">
                     <button class="orange">채팅하기</button>
                   </a>
                 </div>
@@ -53,7 +53,7 @@
                 <p>희망 거래장소 |
                   {{ post.location }}</p>
                 <p>조회수
-                  {{ post.view_num }}</p>
+                  {{ post.view_count}}</p>
               </div>
             </div>
           {% endblock %}
