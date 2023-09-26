@@ -26,6 +26,10 @@ urlpatterns = [
     path('api/', include(router.urls)),
     path("logout/", views.log_out, name="logout"),
     path('trade-post/<int:post_id>', views.trade_post_view, name='trade-post'),
+    path('chat/<int:chat_room_id>/', views.chat_view, name='chat_view'),
+    path('trade-post/<int:pk>/', views.trade_post_view, name='trade_post'),
+    path('trade-post/<int:pk>/delete/', views.delete_post_view, name='delete_post'),
+
 ]
 
 if settings.DEBUG:

@@ -90,32 +90,58 @@ def author_detail_view(request, author):
     user = get_object_or_404(UserInfo, user_id=author)
     return render(request, "daangn_app/author_detail.html", {'posts' : posts, 'user' : user})
 
+class PostImageForm(forms.PostForm):  # ModelForm을 상속합니다.
+    class Meta:
+        model = PostImage
+        fields = ['image']
+
+
 def create_form_view(request):
     if request.method == "POST":
-        form = PostForm(request.POST, request.FILES)
-        if form.is_valid():
-            # wt_location = request.POST.get("wt_location")
+        form = PostForm(request.POST)
+        image_form = PostImageForm(request.POST, request.FILES)  # 이미지를 업로드하기 위한 폼 생성
 
+        if form.is_valid() and image_form.is_valid():  # 폼 및 이미지 폼 모두 유효한지 확인
+            title = form.cleaned_data["title"]
+            price = form.cleaned_data["price"]
+            description = form.cleaned_data["description"]
+            category = form.cleaned_data["category"]
+            wt_location = form.cleaned_data["wt_location"]
+
+            if request.user.is_authenticated:
+                author = request.user
+            else:
+                author = None  
+
+            # 새로운 Post 인스턴스를 생성하고 저장합니다.
             post = Post(
-                title=form.cleaned_data["title"],
-                price=form.cleaned_data["price"],
-                description=form.cleaned_data["description"],
-                #location=form.cleaned_data["location"],
-                # wt_location=wt_location,
-                images=request.FILES.get("images"),
+                title=title,
+                price=price,
+                description=description,
+                category=category,
+                wt_location=wt_location,
+                author=author,  
+                updated=timezone.now(),
             )
             post.save()
+
+            # 이미지를 업로드하고 연결합니다.
+            image = image_form.save(commit=False)
+            image.post = post
+            image.save()
 
             return redirect("daangn_app:main")
         else:
             # 폼 데이터가 유효하지 않은 경우
             # 폼에서 발생한 오류 메시지 출력
             print(form.errors)
+            print(image_form.errors)
     else:
         form = PostForm()
+        image_form = PostImageForm()  # 빈 이미지 폼 생성
 
-    context = {"form": form}
-    return render(request, "daangn_app/chat.html", context)
+    context = {"form": form, "image_form": image_form}  # 이미지 폼을 템플릿에 전달
+    return render(request, "daangn_app/trade.html", context)
 
 def create_or_edit_post(request, post_id=None):
     if post_id:
@@ -130,6 +156,12 @@ def create_or_edit_post(request, post_id=None):
         form = PostForm(request.POST, request.FILES, instance=post)
         if form.is_valid():
             post = form.save()
+
+            # 이미지를 업로드하고 PostImage 모델에 저장
+            images = request.FILES.getlist('images')  # HTML 폼에서 업로드한 이미지 리스트
+            for image in images:
+                PostImage.objects.create(post=post, image=image)
+
             return redirect("daangn_app:main")
     else:
         form = PostForm(instance=post)
@@ -137,7 +169,20 @@ def create_or_edit_post(request, post_id=None):
     context = {"form": form}
     return render(request, "daangn_app/write.html", context)
 
+def delete_post_view(request, pk):
+    post = get_object_or_404(Post, pk=pk)
 
+    # 이제 사용자 정보를 비교할 때 post.author를 사용합니다.
+    if request.user.email == post.author.email:
+        if request.method == 'POST':
+            post.delete()
+            messages.success(request, '게시물이 성공적으로 삭제되었습니다.')
+            return redirect('daangn_app:trade')
+    else:
+        messages.error(request, '게시물 삭제 권한이 없습니다.')
+        return redirect('daangn_app:trade')
+
+    return render(request, 'daangn_app/trade.html', {'post': post})
 class PostViewSet(viewsets.ModelViewSet):
     queryset = Post.objects.all()
     serializer_class = PostSerializer

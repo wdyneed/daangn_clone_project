@@ -44,6 +44,7 @@ class User(AbstractBaseUser):
         return self.email
     
 class Post(models.Model):
+
     title = models.CharField(max_length=200, verbose_name="글 제목")
     price = models.IntegerField(verbose_name="가격")
     description = models.TextField(verbose_name="설명")
@@ -53,9 +54,11 @@ class Post(models.Model):
     updated = models.CharField(verbose_name="끌올", default='N')
     wt_location = models.CharField(max_length=300, verbose_name="판매 원하는 장소")
     status = models.CharField(max_length=100, default="판매중", verbose_name="판매 상태")
-    author = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="작성자", default='')
+    author = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="작성자", default='NONE')
     chat_num = models.PositiveIntegerField(default=0)
     like = models.PositiveIntegerField(default=0, verbose_name="관심 수")
+
+
     
 class UserInfo(models.Model):
     user_id = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -82,7 +85,7 @@ def image_upload_path(instance, filename):
     
 # 다중 이미지 업로드를 위한 테이블
 class PostImage(models.Model):
-    post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='image')
+    post = models.ForeignKey('Post', on_delete=models.CASCADE, related_name='image')
     image = models.ImageField(null=True, upload_to="image_upload_path", blank = True)
     
     def __int__(self):
