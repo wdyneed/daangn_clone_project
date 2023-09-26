@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect, get_object_or_404, reverse
-from .models import Post, UserInfo, PostImage
+from .models import Post, UserInfo, PostImage, chatroom, ChatMessage
 from .forms import PostForm, LoginForm
 from django.contrib import messages
 from django.db.models import Q
@@ -10,6 +10,7 @@ from django.contrib.auth import authenticate, login, logout
 from . import forms, models
 from django.views.generic import FormView
 from django.views import View
+from django.http import JsonResponse
 from django.utils import timezone
 
 
@@ -17,7 +18,35 @@ def main_view(request):
     return render(request, "daangn_app/main.html")
 
 def chat_view(request):
-    return render(request, "daangn_app/chat.html")
+    chat_rooms = chatroom.objects.all()
+    
+    if chat_rooms:
+        chat_room = get_object_or_404(chatroom)
+        chat_messages = ChatMessage.objects.filter(chatroom=chat_room)
+
+        # 채팅방에 연결된 상품 정보 가져오기
+        post = chat_room.post_id  # chatroom 모델에 있는 post_id 필드를 가져옴
+        post_title = post.title
+        post_price = post.price
+
+        if request.method == 'POST':
+            if request.method == 'POST':
+                message_text = request.POST.get('message', '')
+                if message_text:
+                    ChatMessage.objects.create(chat_room=chat_room, sender=request.user, message=message_text)
+                    # 메시지를 성공적으로 저장한 후, JSON 응답을 반환하여 페이지 갱신 없이 채팅 메시지를 업데이트합니다.
+                    return JsonResponse({'success': True})
+        chat_rooms = chatroom.objects.all()        
+        return render(request, 'daangn_app/chat.html', {
+            'chat_room': chat_room,
+            'chat_messages': chat_messages,
+            'post_title': post_title,
+            'post_price': post_price,
+            'chat_rooms': chat_rooms,
+        })
+    else:
+        return render(request, 'daangn_app/chat.html')
+    
 
 def search_view(request):
     search_query = request.GET.get('search', '')
@@ -41,7 +70,8 @@ def register_view(request):
 
 
 def trade_view(request):
-    return render(request, "daangn_app/trade.html")
+    posts = Post.objects.all()
+    return render(request, "daangn_app/trade.html", {'posts' : posts})
 
 # 판매 제품 상세 페이지
 def trade_post_view(request, post_id):
@@ -52,13 +82,13 @@ def trade_post_view(request, post_id):
         post.view_count += 1
         post.save()
         request.session['post_viewed_%s' % post_id] = True
-    return render(request, 'daangn_app/trade_post.html', { post : 'post' })
+    return render(request, 'daangn_app/trade_post.html', { 'post' : post })
 
 # 판매자 모든 물품 보는 view
 def author_detail_view(request, author):
     posts = get_object_or_404(Post, author=author)
     user = get_object_or_404(UserInfo, user_id=author)
-    return render(request, "daangn_app/author_detail.html", {posts : 'posts', user:'user'})
+    return render(request, "daangn_app/author_detail.html", {'posts' : posts, 'user' : user})
 
 def create_form_view(request):
     if request.method == "POST":
