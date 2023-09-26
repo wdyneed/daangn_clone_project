@@ -56,15 +56,18 @@ class Post(models.Model):
     status = models.CharField(max_length=100, default="판매중", verbose_name="판매 상태")
     author = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="작성자", default='')
     chat_num = models.PositiveIntegerField(default=0)
+    like = models.PositiveIntegerField(default=0, verbose_name="관심 수")
     
 class UserInfo(models.Model):
     user_id = models.ForeignKey(User, on_delete=models.CASCADE)
     location = models.CharField(max_length=100)
     user_img = models.ImageField(upload_to="user_img")
+    nickname = models.CharField(max_length=50, default=' ')
 
     
 class chatroom(models.Model):
     post_id = models.ForeignKey(Post, on_delete=models.CASCADE)
+    user = models.ManyToManyField(UserInfo)
     created_at = models.DateTimeField(auto_now_add=True)
     
 class ChatMessage(models.Model):

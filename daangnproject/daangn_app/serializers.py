@@ -11,7 +11,7 @@ class PostImageSerializer(serializers.ModelSerializer):
 class PostSerializer(serializers.ModelSerializer):
     images = serializers.SerializerMethodField()
     def get_images(self, obj):
-        image = obj.PostImage_set.all()
+        image = obj.image.all()
         return PostImageSerializer(instance=image, many=True).data
 
     class Meta:

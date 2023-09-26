@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<script>
+    $(document).ready(function () {
+        $('#chat-form').on('submit', function (event) {
+            event.preventDefault();
+            var messageText = $('#message-input').val();
+            $.ajax({
+                type: 'POST',
+                url: '{% url 'chat_view' chat_room.id %}',  // chat_room.id에 해당하는 URL로 요청
+                data: {
+                    'message': messageText,
+                    'csrfmiddlewaretoken': '{{ csrf_token }}'
+                },
+                dataType: 'json',
+                success: function (data) {
+                    if (data.success) {
+                        // 성공적으로 메시지를 전송한 경우, 입력 필드를 비워줄 수 있습니다.
+                        $('#message-input').val('');
+                    }
+                }
+            });
+        });
+    });
+</script>
+<body>
+    <div>
+        <div class="contact-info flex-box">
+          상대방아이디
+          <div class="temp">
+            36.9도
+          </div>
+        </div>
+
+        <!--물품정보-->
+        <div class="goods-box flex-box between">
+          <div class="flex-box">
+            <div class="selected-thumbnail-box">
+              <img src="" alt="">
+            </div>
+            <div class="goods-info-box">
+              <p>LG 양문형 냉장고 778L</p>
+              <p class="bold">150,000원</p>
+            </div>
+          </div>
+          <button>거래완료</button>
+        </div>
+
+        <!--채팅창 메인-->
+        <div class="chat-container">
+          <div class="message-box from-you">
+            <div class="message-text">입금확인했습니다~</div>
+            <p class="s-text">오전 8:20</p>
+          </div>
+          <div class="message-box from-me">
+            <p class="s-text">오전 8:20</p>
+            <div class="message-text">네 좋은물건 감사합니다~</div>
+          </div>
+        </div>
+      </div>
+
+      <form class="chat-input" action="submit">
+        <textarea name="" id="" cols="30" rows="10" placeholder="메세지를 입력해주세요"></textarea>
+        <div>
+          <button>전송</button>
+        </div>
+      </form>
+</body>
+
+</html>
