@@ -15,38 +15,30 @@ from django.utils import timezone
 
 
 def main_view(request):
-    return render(request, "daangn_app/main.html")
+    posts = Post.objects.all()
+    return render(request, "daangn_app/main.html", {'posts' : posts})
 
 def chat_view(request):
     chat_rooms = chatroom.objects.all()
     
     if chat_rooms:
-        chat_room = get_object_or_404(chatroom)
-        chat_messages = ChatMessage.objects.filter(chatroom=chat_room)
-
-        # 채팅방에 연결된 상품 정보 가져오기
-        post = chat_room.post_id  # chatroom 모델에 있는 post_id 필드를 가져옴
-        post_title = post.title
-        post_price = post.price
-
-        if request.method == 'POST':
-            if request.method == 'POST':
-                message_text = request.POST.get('message', '')
-                if message_text:
-                    ChatMessage.objects.create(chat_room=chat_room, sender=request.user, message=message_text)
-                    # 메시지를 성공적으로 저장한 후, JSON 응답을 반환하여 페이지 갱신 없이 채팅 메시지를 업데이트합니다.
-                    return JsonResponse({'success': True})
-        chat_rooms = chatroom.objects.all()        
-        return render(request, 'daangn_app/chat.html', {
-            'chat_room': chat_room,
-            'chat_messages': chat_messages,
-            'post_title': post_title,
-            'post_price': post_price,
-            'chat_rooms': chat_rooms,
-        })
-    else:
-        return render(request, 'daangn_app/chat.html')
+        
+        return render(request, 'daangn_app/chat.html', {'chat_rooms' : chat_rooms})
     
+def create_chat_room(request):
+    if request.method == "POST":
+        post_id = request.POST.get("post_id")
+        post = Post.objects.get(id=post_id)
+        current_user = request.user
+
+        # 이미 생성된 채팅방이 있는지 확인
+        chat_room = chatroom.objects.filter(post_id_id=post, user_id=current_user).first()
+
+        if not chat_room:
+            # 채팅방이 없으면 새로운 채팅방 생성
+            chat_room = chatroom.objects.create(post_id_id=post.id, user_id=current_user.id)
+        # 생성된 채팅방의 ID를 클라이언트에게 반환
+        return JsonResponse({"chat_room_id": chat_room.id}) 
 
 def search_view(request):
     search_query = request.GET.get('search', '')
@@ -59,14 +51,6 @@ def search_view(request):
     }
     
     return render(request, "daangn_app/search.html", context)
-
-
-def login_view(request):
-    return render(request, "registration/login.html")
-
-
-def register_view(request):
-    return render(request, "registration/register.html")
 
 
 def trade_view(request):

@@ -1,4 +1,4 @@
-{% load static%}{% load humanize %}
+{% load static%}{% load humanize %}{% load timetemplates %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -17,22 +17,26 @@
         </div>
       </div>
       <!-- 채팅방리스트 -->
-      <div class="flex-box chat-box between">
-        {% for chat_room in chat_rooms %}
-        <div>
-            <div class="flex-box">
-              <p class="bold">{{ chat_room.user.nickname }}</p>
-              <p class="s-text">{{ chat_room.user.location }}</p>
-              <p class="s-text">3주전</p>
+      
+    {% for chat_room in chat_rooms %}
+    <a data-chat-room-id="{{ chat_room.id }}">
+        <div class="flex-box chat-box between">
+            <div>
+                <div class="flex-box">
+                <p class="bold">{{ chat_room.post_id.author.email }}</p>
+                <p class="s-text">{{ chat_room.post_id.wt_location }}</p>
+                <p class="s-text">{{ chat_room.created_at|custom_timesince }}</p>
+                </div>
+                <p class="chat-thumb-text">{{chat_room.post_id.title}}</p>
             </div>
-            <p class="chat-thumb-text">거래 잘 하셨나요? 거래한 이웃..</p>
+            <div class="thumbnail-box">
+                <img src="" alt="">
+            </div>
         </div>
-        <div class="thumbnail-box">
-            <img src="" alt="">
-        </div>
+    </a>
         
-        {% endfor %}
+    {% endfor %}
         
-      </div>
+      
 </body>
 </html>

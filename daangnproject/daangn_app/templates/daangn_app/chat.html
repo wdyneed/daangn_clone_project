@@ -14,6 +14,30 @@
     <title>채팅하기</title>
   </head>
 
+  <script>
+    const chatRooms = document.querySelectorAll('.chat-room');
+    const chatMessagesContainer = document.getElementById('chat-messages-container'); // 채팅 메시지를 표시할 컨테이너
+
+    chatRooms.forEach(chatRoom => {
+        chatRoom.addEventListener('click', function () {
+            const chatRoomId = this.getAttribute('data-chat-room-id');
+
+            // 여기서 웹소켓을 사용하여 chatRoomId에 해당하는 채팅 메시지를 가져옵니다.
+            // 가져온 메시지를 chatMessagesContainer에 표시합니다.
+        });
+    });
+    const chatSocket = new WebSocket(`ws://your_server/ws/chat/${chatRoomId}/`);
+
+    chatSocket.onmessage = function (e) {
+        const data = JSON.parse(e.data);
+        // 서버로부터 받은 메시지 처리
+    };
+
+    chatSocket.onclose = function (e) {
+        // WebSocket 연결이 닫힐 때 처리
+    };
+  </script>
+
   <body class="back-ye">
     {% include 'daangn_app/nav.html' %}
     <div class="content-box">

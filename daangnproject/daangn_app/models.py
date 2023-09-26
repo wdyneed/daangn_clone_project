@@ -69,7 +69,7 @@ class UserInfo(models.Model):
     
 class chatroom(models.Model):
     post_id = models.ForeignKey(Post, on_delete=models.CASCADE)
-    user = models.ManyToManyField(UserInfo)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     
 class ChatMessage(models.Model):

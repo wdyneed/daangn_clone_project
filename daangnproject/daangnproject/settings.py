@@ -59,6 +59,7 @@ INSTALLED_APPS = [
     "django.contrib.humanize",
     "daangn_app",
     "rest_framework",
+    "channels"
 ]
 
 CHANNEL_LAYERS = {
