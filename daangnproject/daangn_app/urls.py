@@ -4,7 +4,7 @@ from django.conf import settings
 from django.conf.urls.static import static
 from . import views
 from rest_framework.routers import DefaultRouter
-from .views import PostViewSet, PostImageViewSet, LoginView, RegisterView
+from .views import PostViewSet, PostImageViewSet, LoginView, RegisterView, UpdateUserInfoView
 
 app_name = "daangn_app"
 router = DefaultRouter()
@@ -31,7 +31,7 @@ urlpatterns = [
     path('chat/<int:chat_room_id>/', views.chat_view, name='chat_view'),
     path('trade-post/<int:pk>/', views.trade_post_view, name='trade_post'),
     path('trade-post/<int:pk>/delete/', views.delete_post_view, name='delete_post'),
-
+    path("myinfo/", UpdateUserInfoView.as_view(), name="update_user_info"),
 ]
 
 if settings.DEBUG:

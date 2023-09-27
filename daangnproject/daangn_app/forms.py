@@ -63,3 +63,21 @@ class RegisterForm(forms.ModelForm):
         user.username = email
         user.set_password(password)
         user.save()
+
+
+# 내정보 수정기능 (미완성, 일단 예시로 이메일이랑 이름 수정 테스트중)
+class UpdateUserInfoForm(forms.ModelForm):
+    class Meta:
+        model = models.User
+        fields = (
+            "first_name",
+            "last_name",
+            "email",
+        )
+
+    def save(self, commit=True):
+        user = super().save(commit=False)
+        user.username = self.cleaned_data["email"]
+        if commit:
+            user.save()
+        return user
