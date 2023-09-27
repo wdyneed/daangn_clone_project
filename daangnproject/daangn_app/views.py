@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect, get_object_or_404, reverse
-from .models import Post, UserInfo, PostImage, chatroom, ChatMessage
+from .models import Post, User, UserInfo, PostImage, chatroom, ChatMessage
 from .forms import PostForm, LoginForm
 from django.contrib import messages
 from django.db.models import Q
@@ -258,3 +258,45 @@ class LoginView(View):
 def log_out(request):
     logout(request)
     return redirect(reverse("daangn_app:login"))
+
+
+def location_view(request):
+    User_pk_id = User.objects.get(email=request.user).id
+    if UserInfo.objects.filter(user_id_id=User_pk_id).exists():
+        user_info = UserInfo.objects.get(user_id_id=User_pk_id)
+        if user_info.location:
+            context = {
+                "region": user_info.location,
+                "certified": user_info.location_certified,
+            }
+            return render(request, "daangn_app/location.html", context)
+    else:
+        UserInfo.objects.create(user_id_id=User_pk_id)
+
+    return render(request, "daangn_app/location.html")
+
+
+def location_edit_view(request):
+    region = request.POST["region-setting"]
+    User_pk_id = User.objects.get(email=request.user).id
+    user_info = UserInfo.objects.get(user_id_id=User_pk_id)
+    user_info.location = region
+    user_info.location_certified = False
+    user_info.save()
+    context = {
+        "region": region,
+        "certified": False,
+    }
+    return redirect(reverse("daangn_app:location"))
+
+
+def location_certification_view(request):
+    User_pk_id = User.objects.get(email=request.user).id
+    user_info = UserInfo.objects.get(user_id_id=User_pk_id)
+    user_info.location_certified = True
+    user_info.save()
+    context = {
+        "region": user_info.location,
+        "certified": True,
+    }
+    return redirect(reverse("daangn_app:location"))

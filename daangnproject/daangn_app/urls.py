@@ -33,6 +33,13 @@ urlpatterns = [
     path("chat/<int:chat_room_id>/", views.chat_view, name="chat_view"),
     path("trade-post/<int:pk>/", views.trade_post_view, name="trade_post"),
     path("trade-post/<int:pk>/delete/", views.delete_post_view, name="delete_post"),
+    path("location/", views.location_view, name="location"),
+    path("location_edit/", views.location_edit_view, name="location_edit"),
+    path(
+        "location_certification/",
+        views.location_certification_view,
+        name="location_certification",
+    ),
 ]
 
 if settings.DEBUG:
