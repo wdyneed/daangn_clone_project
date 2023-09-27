@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect, get_object_or_404, reverse
-from .models import Post, UserInfo, PostImage, chatroom, ChatMessage
+from .models import Post, UserInfo, PostImage, chatroom, ChatMessage, User
 from .forms import PostForm, LoginForm
 from django.contrib import messages
 from django.db.models import Q
@@ -26,10 +26,17 @@ def chat_view(request):
     채팅페이지 렌더링하는 함수
     """
     current_user_id = request.user.id
+    # 현재 user랑 작성자 id 같은 것들 temp2에 저장
+    # 구매자만 지금 채팅방이 보이기 때문에 구매자가 메세지를 보내면 판매자의 채팅 리스트에도 뜨게끔 하기 위한 변수
+    temp2 = Post.objects.filter(author_id = current_user_id)
+    # temp2 에서 post의 id 값만 뽑아서 post_ids에 저장
+    post_ids = [post.id for post in temp2]
     chat_rooms = chatroom.objects.filter(user_id=current_user_id)
+    # 채팅방 테이블의 post_id 값과 post_ids의 값이 같은 것들 필터링
+    receive_chat_rooms = chatroom.objects.filter(post_id__in=post_ids)
     # 채팅방이 존재할 때
-    if chat_rooms:
-        return render(request, 'daangn_app/chat.html', {'chat_rooms' : chat_rooms})
+    if chat_rooms or receive_chat_rooms:
+        return render(request, 'daangn_app/chat.html', {'chat_rooms' : chat_rooms, 'receive_chat_rooms' : receive_chat_rooms})
     # 현재 아무런 채팅도 하지 않았을 때
     else:
         return render(request, 'daangn_app/chat.html')
@@ -69,6 +76,25 @@ def get_contact_info(request):
         price_info = chat_room.post_id.price
         # 상대방 아이디 또는 다른 정보를 JSON 응답으로 반환합니다.
         return JsonResponse({'contactInfo': contact_info, 'titleInfo':title_info, 'priceInfo':price_info})
+
+def send_message(request):
+    """
+    메세지 DB에 저장하기 위한 함수
+    """
+    if request.method == 'POST':
+        sender_id = request.user.id  # 현재 로그인한 사용자가 발신자
+        send_at = timezone.now()
+        message_text = request.POST.get('message_text')  # 메시지 내용을 POST 데이터로 받아옴
+        chat_room_id = request.POST.get('data-chat-room-id')
+        # 수신자를 ID로 가져옴
+
+        # 채팅 메시지 저장
+        chat_message = ChatMessage(sender=sender_id, content=message_text, send_at=send_at, chatroom_id=chat_room_id)
+        chat_message.save()
+
+        return JsonResponse({'success': True})
+    else:
+        return JsonResponse({'success': False, 'error': 'Invalid request method'})
 
 #검색기능
 def search_view(request):
