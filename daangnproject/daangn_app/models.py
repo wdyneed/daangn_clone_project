@@ -35,6 +35,11 @@ class User(AbstractBaseUser):
     is_staff = models.BooleanField(default=False)
     signup_date = models.DateTimeField(default=timezone.now)  # Add signup date field
 
+    location = models.CharField(max_length=100, default=None, null=True)
+    location_certified = models.BooleanField(default=False)
+    user_img = models.ImageField(upload_to="user_img", default=None, null=True)
+    nickname = models.CharField(max_length=50, default=" ")
+
     objects = CustomUserManager()
 
     USERNAME_FIELD = "email"
@@ -61,14 +66,6 @@ class Post(models.Model):
     like = models.PositiveIntegerField(default=0, verbose_name="관심 수")
 
 
-class UserInfo(models.Model):
-    user_id = models.ForeignKey(User, on_delete=models.CASCADE)
-    location = models.CharField(max_length=100)
-    location_certified = models.BooleanField(default=False)
-    user_img = models.ImageField(upload_to="user_img")
-    nickname = models.CharField(max_length=50, default=" ")
-
-
 class chatroom(models.Model):
     post_id = models.ForeignKey(Post, on_delete=models.CASCADE)
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
@@ -78,7 +75,7 @@ class chatroom(models.Model):
 class ChatMessage(models.Model):
     chatroom_id = models.ForeignKey(chatroom, on_delete=models.CASCADE)
     content = models.TextField()
-    sender = models.ForeignKey(UserInfo, on_delete=models.CASCADE)
+    sender = models.ForeignKey(User, on_delete=models.CASCADE)
     send_at = models.DateTimeField(auto_now_add=True)
     chat_img = models.ImageField(upload_to="chat")
 
