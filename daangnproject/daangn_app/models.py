@@ -35,6 +35,11 @@ class User(AbstractBaseUser):
     is_staff = models.BooleanField(default=False)
     signup_date = models.DateTimeField(default=timezone.now)  # Add signup date field
 
+    location = models.CharField(max_length=100, default=None, null=True)
+    location_certified = models.BooleanField(default=False)
+    user_img = models.ImageField(upload_to="user_img", default=None, null=True)
+    nickname = models.CharField(max_length=50, default=" ")
+
     objects = CustomUserManager()
 
     USERNAME_FIELD = "email"
@@ -54,16 +59,11 @@ class Post(models.Model):
     updated = models.CharField(verbose_name="끌올", default="N")
     wt_location = models.CharField(max_length=300, verbose_name="판매 원하는 장소")
     status = models.CharField(max_length=100, default="판매중", verbose_name="판매 상태")
-    author = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="작성자", default="NONE")
+    author = models.ForeignKey(
+        User, on_delete=models.CASCADE, verbose_name="작성자", default="NONE"
+    )
     chat_num = models.PositiveIntegerField(default=0)
     like = models.PositiveIntegerField(default=0, verbose_name="관심 수")
-
-
-class UserInfo(models.Model):
-    user_id = models.ForeignKey(User, on_delete=models.CASCADE)
-    location = models.CharField(max_length=100)
-    user_img = models.ImageField(upload_to="user_img")
-    nickname = models.CharField(max_length=50, default=" ")
 
 
 class chatroom(models.Model):
@@ -75,7 +75,7 @@ class chatroom(models.Model):
 class ChatMessage(models.Model):
     chatroom_id = models.ForeignKey(chatroom, on_delete=models.CASCADE)
     content = models.TextField()
-    sender = models.ForeignKey(UserInfo, on_delete=models.CASCADE)
+    sender = models.ForeignKey(User, on_delete=models.CASCADE)
     send_at = models.DateTimeField(auto_now_add=True)
     chat_img = models.ImageField(upload_to="chat")
 

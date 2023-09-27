@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect, get_object_or_404, reverse
-from .models import Post, UserInfo, PostImage, chatroom, ChatMessage, User
+from .models import Post, PostImage, chatroom, ChatMessage, User
 from .forms import PostForm, LoginForm, UpdateUserInfoForm
 from django.contrib import messages
 from django.db.models import Q
@@ -52,11 +52,15 @@ def create_chat_room(request):
         current_user = request.user
 
         # 이미 생성된 채팅방이 있는지 확인
-        chat_room = chatroom.objects.filter(post_id_id=post, user_id=current_user).first()
+        chat_room = chatroom.objects.filter(
+            post_id_id=post, user_id=current_user
+        ).first()
 
         if not chat_room:
             # 채팅방이 없으면 새로운 채팅방 생성
-            chat_room = chatroom.objects.create(post_id_id=post.id, user_id=current_user.id)
+            chat_room = chatroom.objects.create(
+                post_id_id=post.id, user_id=current_user.id
+            )
         # 생성된 채팅방의 ID를 클라이언트에게 반환
         return JsonResponse({"chat_room_id": chat_room.id}) 
     
@@ -114,6 +118,7 @@ def search_view(request):
 def trade_view(request):
     posts = Post.objects.all()
     return render(request, "daangn_app/trade.html", {"posts": posts})
+
 
 def trade_post_view(request, post_id):
     """
@@ -251,7 +256,9 @@ class PostImageViewSet(viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
         headers = self.get_success_headers(serializer.data)
-        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+        return Response(
+            serializer.data, status=status.HTTP_201_CREATED, headers=headers
+        )
 
     def perform_create(self, serializer):
         post = Post.objects.get(id=self.kwargs["post_pk"])
@@ -340,3 +347,40 @@ class UpdateUserInfoView(View):
             messages.success(request, "유저 정보가 성공적으로 수정되었습니다.")
             return redirect("daangn_app:main")
         return render(request, self.template_name, {"update_form": form})
+
+
+def location_view(request):
+    user_info = User.objects.get(email=request.user)
+    if user_info.location:
+        context = {
+            "region": user_info.location,
+            "certified": user_info.location_certified,
+        }
+        return render(request, "daangn_app/location.html", context)
+    else:
+        return render(request, "daangn_app/location.html")
+
+
+def location_edit_view(request):
+    region = request.POST["region-setting"]
+    user_info = User.objects.get(email=request.user)
+    user_info.location = region
+    user_info.location_certified = False
+    user_info.save()
+    context = {
+        "region": region,
+        "certified": False,
+    }
+    return redirect(reverse("daangn_app:location"))
+
+
+def location_certification_view(request):
+    User_pk_id = User.objects.get(email=request.user).id
+    user_info = User.objects.get(email=request.user)
+    user_info.location_certified = True
+    user_info.save()
+    context = {
+        "region": user_info.location,
+        "certified": True,
+    }
+    return redirect(reverse("daangn_app:location"))
