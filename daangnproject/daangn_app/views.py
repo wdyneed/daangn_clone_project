@@ -141,7 +141,7 @@ def author_detail_view(request, author):
     판매자 모든 물품 보는 함수
     """
     posts = get_object_or_404(Post, author=author)
-    user = get_object_or_404(UserInfo, user_id=author)
+    user = get_object_or_404(User, user_id=author)
     return render(request, "daangn_app/author_detail.html", {"posts": posts, "user": user})
 
 
