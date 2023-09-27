@@ -49,7 +49,7 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
-    'daphne',
+    "daphne",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -59,9 +59,14 @@ INSTALLED_APPS = [
     "django.contrib.humanize",
     "daangn_app",
     "rest_framework",
-    "channels"
+    "rest_framework.authtoken",
+    "channels",
 ]
-
+REST_FRAMEWORK = {
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "rest_framework.authentication.TokenAuthentication",
+    ],
+}
 CHANNEL_LAYERS = {
     "default": {
         "BACKEND": "channels_redis.core.RedisChannelLayer",
@@ -70,9 +75,9 @@ CHANNEL_LAYERS = {
         },
     },
 }
-LOGIN_REDIRECT_URL = '/'
-LOGOUT_REDIRECT_URL = '/'
-AUTH_USER_MODEL = 'daangn_app.User'
+LOGIN_REDIRECT_URL = "/"
+LOGOUT_REDIRECT_URL = "/"
+AUTH_USER_MODEL = "daangn_app.User"
 
 ASGI_APPLICATION = "daangnproject.asgi.application"
 
@@ -106,7 +111,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "daangnproject.wsgi.application"
 
-MEDIA_URL = '/media/'
+MEDIA_URL = "/media/"
 MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 
 # Database

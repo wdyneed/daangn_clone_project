@@ -3,18 +3,18 @@
 <!DOCTYPE html>
 <html lang="en">
 
-  <head>
-    <meta charset="UTF-8"/>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <link rel="stylesheet" type="text/css" href="{% static 'css/reset.css' %}"/>
-    <link rel="stylesheet" type="text/css" href="{% static 'css/global.css' %}"/>
-    <link rel="stylesheet" type="text/css" href="{% static 'css/trade_post.css' %}"/>
-    <link rel="stylesheet" type="text/css" href="{% static 'css/nav.css' %}"/>
-    <link rel="stylesheet" type="text/css" href="{% static 'css/footer.css' %}"/>
-    <title>중고거래 상세보기</title>
-  </head>
-  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-  <script>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" type="text/css" href="{% static 'css/reset.css' %}" />
+  <link rel="stylesheet" type="text/css" href="{% static 'css/global.css' %}" />
+  <link rel="stylesheet" type="text/css" href="{% static 'css/trade_post.css' %}" />
+  <link rel="stylesheet" type="text/css" href="{% static 'css/nav.css' %}" />
+  <link rel="stylesheet" type="text/css" href="{% static 'css/footer.css' %}" />
+  <title>중고거래 상세보기</title>
+</head>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
 
     {% comment %} 채팅하기 버튼을 누르면 채팅방이 추가되게끔 하는 js {% endcomment %}
     $(document).ready(function() {
@@ -49,11 +49,15 @@
       <div class="container column">
         <div class="post-box">
           {% block content %}
-            <img src="{{ post.images.url }}" alt="{{ post.title }}" class="block-box">
+          {% for image in images %}
+            <img src="{{ image.image.url }}" alt="{{ post.title }}">
+          {% endfor %}
             <div class="flex-box between info-button-box">
               <div class="user-info">
                 <h6>{{ post.author.email }}</h6>
                 <p>{{ post.author.userinfo.location }}</p>
+                <p>{{ post.images.url }}</p>
+                <a>{{ post.images.url }}</a>
               </div>
               {% if request.user.email == post.author.email %}
                 <div class="flex-box button-box">
