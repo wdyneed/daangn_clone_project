@@ -16,15 +16,16 @@ from django.utils import timezone
 
 def main_view(request):
     posts = Post.objects.all()
-    return render(request, "daangn_app/main.html", {'posts' : posts})
+    return render(request, "daangn_app/main.html", {"posts": posts})
+
 
 def chat_view(request):
     chat_rooms = chatroom.objects.all()
-    
+
     if chat_rooms:
-        
-        return render(request, 'daangn_app/chat.html', {'chat_rooms' : chat_rooms})
-    
+        return render(request, "daangn_app/chat.html", {"chat_rooms": chat_rooms})
+
+
 def create_chat_room(request):
     if request.method == "POST":
         post_id = request.POST.get("post_id")
@@ -38,52 +39,55 @@ def create_chat_room(request):
             # 채팅방이 없으면 새로운 채팅방 생성
             chat_room = chatroom.objects.create(post_id_id=post.id, user_id=current_user.id)
         # 생성된 채팅방의 ID를 클라이언트에게 반환
-        return JsonResponse({"chat_room_id": chat_room.id}) 
+        return JsonResponse({"chat_room_id": chat_room.id})
+
 
 def search_view(request):
-    search_query = request.GET.get('search', '')
+    search_query = request.GET.get("search", "")
     posts = Post.objects.filter(
         Q(title__icontains=search_query) | Q(description__icontains=search_query)
     ).distinct()
-    context = {
-        'posts' : posts,
-        'search_query' : search_query
-    }
-    
+    context = {"posts": posts, "search_query": search_query}
+
     return render(request, "daangn_app/search.html", context)
 
 
 def trade_view(request):
     posts = Post.objects.all()
-    return render(request, "daangn_app/trade.html", {'posts' : posts})
+    return render(request, "daangn_app/trade.html", {"posts": posts})
+
 
 # 판매 제품 상세 페이지
 def trade_post_view(request, post_id):
     post = get_object_or_404(Post, id=post_id)
-    if request.method == 'POST':
+    # 해당 게시물에 연결된 이미지 가져오기
+    images = PostImage.objects.filter(post=post)
+    if request.method == "POST":
         pass
-    if 'post_viewed_%s' % post_id not in request.session:
+    if "post_viewed_%s" % post_id not in request.session:
         post.view_count += 1
         post.save()
-        request.session['post_viewed_%s' % post_id] = True
-    return render(request, 'daangn_app/trade_post.html', { 'post' : post })
+        request.session["post_viewed_%s" % post_id] = True
+    return render(request, "daangn_app/trade_post.html", {"post": post, "images": images})
+
 
 # 판매자 모든 물품 보는 view
 def author_detail_view(request, author):
     posts = get_object_or_404(Post, author=author)
     user = get_object_or_404(UserInfo, user_id=author)
-    return render(request, "daangn_app/author_detail.html", {'posts' : posts, 'user' : user})
+    return render(request, "daangn_app/author_detail.html", {"posts": posts, "user": user})
+
 
 class PostImageForm(forms.PostForm):  # ModelForm을 상속합니다.
     class Meta:
         model = PostImage
-        fields = ['image']
+        fields = ["image"]
 
 
 def create_form_view(request):
     if request.method == "POST":
         form = PostForm(request.POST)
-        image_form = PostImageForm(request.POST, request.FILES)  # 이미지를 업로드하기 위한 폼 생성
+        image_form = PostImageForm(request.FILES)  # 이미지를 업로드하기 위한 폼 생성
 
         if form.is_valid() and image_form.is_valid():  # 폼 및 이미지 폼 모두 유효한지 확인
             title = form.cleaned_data["title"]
@@ -95,7 +99,7 @@ def create_form_view(request):
             if request.user.is_authenticated:
                 author = request.user
             else:
-                author = None  
+                author = None
 
             # 새로운 Post 인스턴스를 생성하고 저장합니다.
             post = Post(
@@ -104,15 +108,14 @@ def create_form_view(request):
                 description=description,
                 category=category,
                 wt_location=wt_location,
-                author=author,  
+                author=author,
                 updated=timezone.now(),
             )
             post.save()
 
             # 이미지를 업로드하고 연결합니다.
-            image = image_form.save(commit=False)
-            image.post = post
-            image.save()
+            for image in request.FILES.getlist("images"):
+                PostImage.objects.create(post=post, image=image)
 
             return redirect("daangn_app:main")
         else:
@@ -127,7 +130,9 @@ def create_form_view(request):
     context = {"form": form, "image_form": image_form}  # 이미지 폼을 템플릿에 전달
     return render(request, "daangn_app/trade.html", context)
 
+
 def create_or_edit_post(request, post_id=None):
+    # 글 수정 시, post_id에 해당하는 글이 있는지 확인
     if post_id:
         try:
             post = Post.objects.get(pk=post_id)
@@ -137,13 +142,13 @@ def create_or_edit_post(request, post_id=None):
         post = None
 
     if request.method == "POST":
-        form = PostForm(request.POST, request.FILES, instance=post)
+        form = PostForm(request.POST, instance=post)
         if form.is_valid():
+            # 글 정보 저장
             post = form.save()
 
-            # 이미지를 업로드하고 PostImage 모델에 저장
-            images = request.FILES.getlist('images')  # HTML 폼에서 업로드한 이미지 리스트
-            for image in images:
+            # 이미지 업로드 및 PostImage 모델에 저장
+            for image in request.FILES.getlist("images"):
                 PostImage.objects.create(post=post, image=image)
 
             return redirect("daangn_app:main")
@@ -153,24 +158,28 @@ def create_or_edit_post(request, post_id=None):
     context = {"form": form}
     return render(request, "daangn_app/write.html", context)
 
+
 def delete_post_view(request, pk):
     post = get_object_or_404(Post, pk=pk)
 
     # 이제 사용자 정보를 비교할 때 post.author를 사용합니다.
     if request.user.email == post.author.email:
-        if request.method == 'POST':
+        if request.method == "POST":
             post.delete()
-            messages.success(request, '게시물이 성공적으로 삭제되었습니다.')
-            return redirect('daangn_app:trade')
+            messages.success(request, "게시물이 성공적으로 삭제되었습니다.")
+            return redirect("daangn_app:trade")
     else:
-        messages.error(request, '게시물 삭제 권한이 없습니다.')
-        return redirect('daangn_app:trade')
+        messages.error(request, "게시물 삭제 권한이 없습니다.")
+        return redirect("daangn_app:trade")
 
-    return render(request, 'daangn_app/trade.html', {'post': post})
+    return render(request, "daangn_app/trade.html", {"post": post})
+
+
 class PostViewSet(viewsets.ModelViewSet):
     queryset = Post.objects.all()
     serializer_class = PostSerializer
-    
+
+
 class PostImageViewSet(viewsets.ModelViewSet):
     queryset = PostImage.objects.all()
     serializer_class = PostImageSerializer
@@ -183,11 +192,16 @@ class PostImageViewSet(viewsets.ModelViewSet):
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
     def perform_create(self, serializer):
-        post = Post.objects.get(id=self.kwargs['post_pk'])
+        post = Post.objects.get(id=self.kwargs["post_pk"])
         serializer.save(post=post)
-        
-        
-        
+
+
+def show_post_images(request, post_id):
+    post = get_object_or_404(Post, pk=post_id)
+    images = post.images.all()
+    return render(request, "trade_post.html", {"post": post, "images": images})
+
+
 class RegisterView(FormView):
     template_name = "registration/register.html"
     form_class = forms.RegisterForm

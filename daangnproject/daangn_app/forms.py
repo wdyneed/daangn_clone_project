@@ -14,7 +14,13 @@ class PostForm(forms.ModelForm):
             "wt_location",
         ]
 
-        
+
+class ImageUploadForm(forms.ModelForm):
+    class Meta:
+        model = PostImage
+        fields = ["image"]
+
+
 class LoginForm(forms.Form):
     email = forms.EmailField()
     password = forms.CharField(widget=forms.PasswordInput)
