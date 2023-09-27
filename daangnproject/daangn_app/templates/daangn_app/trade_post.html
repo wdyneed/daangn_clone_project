@@ -55,7 +55,7 @@
                 <h6>{{ post.author.email }}</h6>
                 <p>{{ post.author.userinfo.location }}</p>
               </div>
-              {% if request.user.email == post.user.email %}
+              {% if request.user.email == post.author.email %}
                 <div class="flex-box button-box">
                   <a href="{% url 'daangn_app:edit' post.id %}">
                     <button class="grey">수정하기</button>
