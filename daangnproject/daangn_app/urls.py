@@ -28,9 +28,10 @@ urlpatterns = [
     path('trade-post/<int:post_id>', views.trade_post_view, name='trade-post'),
     path('create_chat_room/', views.create_chat_room, name='create_chat_room'),
     path('chat/<int:room_id>', views.chat_view, name='chat'),
-    path('chat/<int:chat_room_id>/', views.chat_view, name='chat_view'),
+    # path('chat/<int:chat_room_id>/', views.chat_view, name='chat_view'),
     path('trade-post/<int:pk>/', views.trade_post_view, name='trade_post'),
     path('trade-post/<int:pk>/delete/', views.delete_post_view, name='delete_post'),
+    path('get_contact_info/', views.get_contact_info, name="get_contact_info"),
     path("myinfo/", UpdateUserInfoView.as_view(), name="update_user_info"),
 ]
 
