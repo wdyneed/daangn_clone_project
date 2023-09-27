@@ -1,4 +1,4 @@
-{% load static%}{% load humanize %}
+{% load static%}{% load humanize %}{% load timetemplates %}
 
 <!DOCTYPE html>
 <html lang="en">
@@ -13,31 +13,90 @@
     <link rel="stylesheet" type="text/css" href="{% static 'css/footer.css' %}"/>
     <title>채팅하기</title>
   </head>
-
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script>
-    const chatRooms = document.querySelectorAll('.chat-room');
-    const chatMessagesContainer = document.getElementById('chat-messages-container'); // 채팅 메시지를 표시할 컨테이너
+    function handleIncomingMessage(message, isSentByMe) {
+      const messageContainer = document.createElement('div');
+      if (isSentByMe) {
+          messageContainer.classList.add('message-sent');
+      } else {
+          messageContainer.classList.add('message-received');
+      }
+      messageContainer.textContent = message;
+  
+      // 메시지를 표시할 컨테이너에 추가
+      const chatMessagesContainer = document.querySelector('.message-container');
+      chatMessagesContainer.appendChild(messageContainer);
+    }
 
-    chatRooms.forEach(chatRoom => {
-        chatRoom.addEventListener('click', function () {
-            const chatRoomId = this.getAttribute('data-chat-room-id');
 
-            // 여기서 웹소켓을 사용하여 chatRoomId에 해당하는 채팅 메시지를 가져옵니다.
-            // 가져온 메시지를 chatMessagesContainer에 표시합니다.
+    document.addEventListener('DOMContentLoaded', function () {
+        // 클릭 이벤트 핸들러 등록
+        document.querySelectorAll('.chat-room').forEach(function (chatRoomElement) {
+            chatRoomElement.addEventListener('click', function () {
+                handleChatRoomClick(this);
+            });
         });
+
+        function handleChatRoomClick(chatRoomElement) {
+            const chatRoomId = chatRoomElement.getAttribute('data-chat-room-id');
+            const chatMessagesContainer = document.getElementById('chat-messages-container');
+
+            // 웹소켓 연결 및 메시지 처리 로직을 추가해야 합니다.
+            // 이 부분은 웹소켓 서버에 대한 연결 및 메시지 처리 로직을 작성해야 합니다.
+
+            // AJAX 요청 (GET)
+            $.ajax({
+                url: "/get_contact_info/",
+                type: "GET",
+                data: { chat_room_id: chatRoomId },
+                success: function (data) {
+                    const contact = document.getElementById("temp-info");
+                    // 서버로부터 받은 데이터를 화면에 표시
+                    contact.innerHTML = `<p>${data.contactInfo}</p>`;
+                    const product = document.getElementById("product_detail");
+                    product.innerHTML = `<p>${data.titleInfo}</p>
+                    <p class="bold">${data.priceInfo}</p>`;
+                },
+                error: function (error) {
+                    console.error('Error:', error);
+                }
+            });
+
+            const chatSocket = new WebSocket(
+              `ws://${window.location.host}/ws/chat/${chatRoomId}/`
+            );
+
+            chatSocket.onmessage = function(e) {
+              const data = JSON.parse(e.data);
+              handleIncomingMessage(data.message, false);
+            };
+    
+            chatSocket.onclose = function(e) {
+                console.error('Chat socket closed unexpectedly');
+            };
+    
+            document.querySelector('#message').focus();
+            document.querySelector('#message').addEventListener('keydown', function (e) {
+                if (e.key === 'Enter' || e.keyCode === 13) {  // enter, return
+                  e.preventDefault();
+                  document.querySelector('#chat-message-submit').click();
+                }
+            });
+    
+            document.querySelector('#chat-message-submit').onclick = function(e) {
+                e.preventDefault();
+                const messageInputDom = document.querySelector('#message');
+                const message = messageInputDom.value;
+                chatSocket.send(JSON.stringify({
+                    'message': message
+                }));
+                messageInputDom.value = '';
+                handleIncomingMessage(message, true);
+            };
+        }
     });
-    const chatSocket = new WebSocket(`ws://your_server/ws/chat/${chatRoomId}/`);
-
-    chatSocket.onmessage = function (e) {
-        const data = JSON.parse(e.data);
-        // 서버로부터 받은 메시지 처리
-    };
-
-    chatSocket.onclose = function (e) {
-        // WebSocket 연결이 닫힐 때 처리
-    };
   </script>
-
   <body class="back-ye">
     {% include 'daangn_app/nav.html' %}
     <div class="content-box">
@@ -50,7 +109,7 @@
 
               <!-- 아이디및 체크박스 -->
               <div class="id-box flex-box between">
-                아이디
+                {{ request.user.email }}
                 <div>
                   <label>
                     안읽은 메세지만 보기
@@ -63,12 +122,71 @@
             <!-- 채팅 리스트 -->
             <div class="chat-list-box flex-box column">
               <!-- 봇 -->
-              {% include 'daangn_app/chat_list.html' %}
+              <div class="chat-box flex-box">
+                <div class="ai-profile">
+                  <img src="{% static 'img/icon_aibot.png'%}" alt="">
+                </div>
+                <div>
+                  <p class="bold">AI 챗봇</p>
+                  <p class="chat-thumb-text">궁금한 내용을 물어보세요!</p>
+                </div>
+              </div>
+              <!-- 채팅방리스트 -->
+              
+              {% for chat_room in chat_rooms %}
+              <a class="chat-room" data-chat-room-id="{{ chat_room.id }}">
+                  <div class="flex-box chat-box between">
+                      <div>
+                          <div class="flex-box">
+                              <p class="bold">{{ chat_room.post_id.author.email }}</p>
+                              <p class="s-text">{{ chat_room.post_id.wt_location }}</p>
+                              <p class="s-text">{{ chat_room.created_at|custom_timesince }}</p>
+                          </div>
+                          <p class="chat-thumb-text">{{ chat_room.post_id.title }}</p>
+                      </div>
+                      <div class="thumbnail-box">
+                          <img src="" alt="">
+                      </div>
+                  </div>
+              </a>
+              {% endfor %}
             </div>
           </div>
           <!-- 채팅창-->
           <div class="chat-main-container">
-            {% include 'daangn_app/chat_messages.html' %}
+            <div>
+              <div class="contact-info flex-box" id='temp-info'>
+                
+              </div>
+      
+              <!--물품정보-->
+              <div class="goods-box flex-box between">
+                <div class="flex-box">
+                  <div class="selected-thumbnail-box">
+                    <img src="" alt="">
+                  </div>
+                  <div class="goods-info-box" id='product_detail'>
+                  </div>
+                </div>
+                <button>거래완료</button>
+              </div>
+      
+              <!--채팅창 메인-->
+              <div class="chat-container">
+                <div>
+                  <div id="chat-messages" class="message-container">
+                  </div>
+                </div>
+              </div>
+            </div>
+      
+            <form class="chat-input" method="submit">
+              {% csrf_token %}
+              <textarea name="message" id="message" cols="30" rows="10" placeholder="메세지를 입력해주세요"></textarea>
+              <div>
+                <input id="chat-message-submit" type="button" value="전송">
+              </div>
+            </form>
           </div>
         </div>
       </div>

@@ -231,7 +231,7 @@ hr{
     justify-content: space-between;
 }
 
-.chat-input textarea{
+#message{
     width: -webkit-fill-available;
     display: block;
     border: none;
@@ -242,7 +242,7 @@ hr{
     font-size: 15px;
 }
 
-.chat-input textarea:focus{
+#message:focus{
     outline: none;
     resize: none;
 }
@@ -252,7 +252,7 @@ hr{
     justify-content: flex-end;
 }
 
-.chat-input button{
+#chat-message-submit{
     background-color: #E1E1E1;
     border:none;
     padding: 6px 20px;
