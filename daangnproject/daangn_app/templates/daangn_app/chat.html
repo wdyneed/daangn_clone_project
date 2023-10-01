@@ -5,28 +5,33 @@
 
   <head>
     <meta charset="UTF-8"/>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <link rel="stylesheet" type="text/css" href="{% static 'css/reset.css' %}"/>
-    <link rel="stylesheet" type="text/css" href="{% static 'css/global.css' %}"/>
-    <link rel="stylesheet" type="text/css" href="{% static 'css/test.css' %}"/>
-    <link rel="stylesheet" type="text/css" href="{% static 'css/nav.css' %}"/>
-    <link rel="stylesheet" type="text/css" href="{% static 'css/footer.css' %}"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" type="text/css" href="{% static 'css/reset.css' %}?{% now 'U' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'css/global.css' %}?{% now 'U' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'css/test.css' %}?{% now 'U' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'css/nav.css' %}?{% now 'U' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'css/footer.css' %}?{% now 'U' %}">
     <title>채팅하기</title>
   </head>
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script>
     function handleIncomingMessage(message, isSentByMe) {
+      const date = new Date()
       const messageContainer = document.createElement('div');
+      const timeContainer = document.createElement('p');
       if (isSentByMe) {
           messageContainer.classList.add('message-sent');
+          timeContainer.classList.add('s-my-text');
       } else {
           messageContainer.classList.add('message-received');
+          timeContainer.classList.add('s-notmy-text');
       }
       messageContainer.textContent = message;
-  
+      timeContainer.textContent = date.toLocaleTimeString('ko-kr', { hour: '2-digit', minute: '2-digit' });
       // 메시지를 표시할 컨테이너에 추가
       const chatMessagesContainer = document.querySelector('.message-container');
       chatMessagesContainer.appendChild(messageContainer);
+      chatMessagesContainer.appendChild(timeContainer);
     }
 
 
@@ -41,7 +46,7 @@
         function handleChatRoomClick(chatRoomElement) {
             const chatRoomId = chatRoomElement.getAttribute('data-chat-room-id');
             const chatMessagesContainer = document.getElementById('chat-messages-container');
-
+            
             // 웹소켓 연결 및 메시지 처리 로직을 추가해야 합니다.
             // 이 부분은 웹소켓 서버에 대한 연결 및 메시지 처리 로직을 작성해야 합니다.
 
@@ -66,10 +71,18 @@
             const chatSocket = new WebSocket(
               `ws://${window.location.host}/ws/chat/${chatRoomId}/`
             );
-
+            var check = true;
+            
             chatSocket.onmessage = function(e) {
               const data = JSON.parse(e.data);
-              handleIncomingMessage(data.message, false);
+              
+              if (data.isSentByMe == {{ request.user.id }}) {
+                check = true;
+              }
+              else{
+                check = false;
+              }
+              handleIncomingMessage(data.message, check);
             };
     
             chatSocket.onclose = function(e) {
@@ -154,7 +167,7 @@
                   <div class="flex-box chat-box between">
                       <div>
                           <div class="flex-box">
-                              <p class="bold">{{ receive_chat_room.post_id.author.email }}</p>
+                              <p class="bold">{{ receive_chat_room.user.email }}</p>
                               <p class="s-text">{{ receive_chat_room.post_id.wt_location }}</p>
                               <p class="s-text">{{ receive_chat_room.created_at|custom_timesince }}</p>
                           </div>
@@ -179,7 +192,7 @@
               <div class="goods-box flex-box between">
                 <div class="flex-box">
                   <div class="selected-thumbnail-box">
-                    <img src="" alt="">
+                    <img src="{% static "img/daangn.jpg" %}" alt="">
                   </div>
                   <div class="goods-info-box" id='product_detail'>
                   </div>

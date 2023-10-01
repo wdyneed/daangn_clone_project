@@ -12,6 +12,7 @@ from django.views.generic import FormView
 from django.views import View
 from django.http import JsonResponse
 from django.utils import timezone
+from asgiref.sync import sync_to_async
 
 
 def main_view(request):
@@ -71,12 +72,17 @@ def get_contact_info(request):
     """
     if request.method == 'GET':
         chat_room_id = request.GET.get('chat_room_id')
-        
+        current_user = request.user.email
         # chat_room_id에 해당하는 채팅방을 가져옵니다.
         chat_room = get_object_or_404(chatroom, id=chat_room_id)
-
         # 가져온 채팅방에서 상대방 아이디 또는 다른 필요한 정보를 추출합니다.
-        contact_info = chat_room.post_id.author.email  # 상대방 아이디 예시
+        temp_info = chat_room.post_id.author.email  # 상대방 아이디 예시
+        temp_info2 = chat_room.user.email
+        # 현재 로그인한 사람과 같은 값이면 다른 값으로 변경 (ex: 로그인=A 채팅방 상대 =A 일시 B로 변경하는 코드)
+        if current_user == temp_info:
+            contact_info = temp_info2
+        else:
+            contact_info = temp_info        
         title_info = chat_room.post_id.title
         price_info = chat_room.post_id.price
         # 상대방 아이디 또는 다른 정보를 JSON 응답으로 반환합니다.
@@ -384,3 +390,8 @@ def location_certification_view(request):
         "certified": True,
     }
     return redirect(reverse("daangn_app:location"))
+
+
+def create_chat_message(sender, content, chatroom_id, send_at):
+        chat_message = ChatMessage.objects.create(sender=sender, content=content, chatroom_id=chatroom_id, send_at=send_at)
+        chat_message.save()
