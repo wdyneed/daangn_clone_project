@@ -60,7 +60,7 @@ INSTALLED_APPS = [
     "daangn_app",
     "rest_framework",
     "rest_framework.authtoken",
-    "channels",,
+    "channels",
 ]
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
