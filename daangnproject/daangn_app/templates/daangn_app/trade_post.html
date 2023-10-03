@@ -49,12 +49,19 @@
       <div class="container column">
         <div class="post-box">
           {% block content %}
-          {% for image in images %}
-            <img src="{{ image.image.url }}" alt="{{ post.title }}">
-          {% endfor %}
+          {% if images %}
+            {% for image in images %}
+              <img src="{{ image.image.url }}" alt="{{ post.title }}">
+            {% endfor %}
+          {% else %}
+            <img>
+          {% endif %}
+          
             <div class="flex-box between info-button-box">
               <div class="user-info">
-                <h6>{{ post.author.email }}</h6>
+                <a href="{% url "daangn_app:author_detail" post.author.id %}" style="text-decoration: none; color: inherit;">
+                  <h6>{{ post.author.email }}</h6>
+                </a>
                 <p>{{ post.author.userinfo.location }}</p>
                 <p>{{ post.images.url }}</p>
                 <a>{{ post.images.url }}</a>

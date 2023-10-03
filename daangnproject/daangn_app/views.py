@@ -1,8 +1,8 @@
 from django.shortcuts import render, redirect, get_object_or_404, reverse
-from .models import Post, PostImage, chatroom, ChatMessage, User
+from .models import Post, PostImage, chatroom, ChatMessage, User, DisconnectInfo
 from .forms import PostForm, LoginForm, UpdateUserInfoForm
 from django.contrib import messages
-from django.db.models import Q
+from django.db.models import Q, F, ExpressionWrapper, Exists, OuterRef, Subquery, DateTimeField
 from .serializers import PostSerializer, PostImageSerializer
 from rest_framework import viewsets, status
 from rest_framework.response import Response
@@ -12,6 +12,9 @@ from django.views.generic import FormView
 from django.views import View
 from django.http import JsonResponse
 from django.utils import timezone
+from asgiref.sync import sync_to_async
+from datetime import datetime
+
 
 
 def main_view(request):
@@ -32,15 +35,50 @@ def chat_view(request):
     temp2 = Post.objects.filter(author_id = current_user_id)
     # temp2 에서 post의 id 값만 뽑아서 post_ids에 저장
     post_ids = [post.id for post in temp2]
-    chat_rooms = chatroom.objects.filter(user_id=current_user_id)
+    
     # 채팅방 테이블의 post_id 값과 post_ids의 값이 같은 것들 필터링
+    chat_rooms = chatroom.objects.filter(user_id=current_user_id)
     receive_chat_rooms = chatroom.objects.filter(post_id__in=post_ids)
+        
     # 채팅방이 존재할 때
     if chat_rooms or receive_chat_rooms:
         return render(request, 'daangn_app/chat.html', {'chat_rooms' : chat_rooms, 'receive_chat_rooms' : receive_chat_rooms})
     # 현재 아무런 채팅도 하지 않았을 때
     else:
         return render(request, 'daangn_app/chat.html')
+
+def filter_chat_rooms(request):
+    """
+    채팅방 리스트 필터링 함수
+    읽지 않은 채팅방만 보여주는 함수입니다.
+    """
+    is_unread = request.GET.get('unread_checkbox') == 'true'
+    current_user_id = request.user.id
+    temp2 = Post.objects.filter(author_id = current_user_id)
+    post_ids = [post.id for post in temp2]
+    chat_rooms = chatroom.objects.filter(user_id=current_user_id)
+    receive_chat_rooms = chatroom.objects.filter(post_id__in=post_ids)
+    excluded_ids = []
+    for i in chat_rooms:
+        if DisconnectInfo.objects.filter(chat_room_id=i.id).first():
+            check = DisconnectInfo.objects.filter(chat_room_id=i.id).first()
+            if i.created_at > check.disconnect_time:
+                excluded_ids.append(check.chat_room.id)
+    
+    real_chat_rooms = chatroom.objects.filter(user_id=current_user_id).exclude(id__in=excluded_ids)
+    r_data = []
+    for r in real_chat_rooms:
+        r_d = {
+            'email' : r.post_id.author.email,
+            'wt_location': r.post_id.wt_location,
+            'created_at': r.created_at,
+            'title': r.post_id.title
+        }
+        r_data.append(r_d)
+    
+    
+    return JsonResponse({'chatRooms': r_d})
+            
     
 def create_chat_room(request):
     """
@@ -59,8 +97,10 @@ def create_chat_room(request):
         if not chat_room:
             # 채팅방이 없으면 새로운 채팅방 생성
             chat_room = chatroom.objects.create(
-                post_id_id=post.id, user_id=current_user.id
+                post_id_id=post.id, user_id=current_user.id, created_at=timezone.now()
             )
+            post.chat_num += 1
+            post.save()
         # 생성된 채팅방의 ID를 클라이언트에게 반환
         return JsonResponse({"chat_room_id": chat_room.id}) 
     
@@ -71,35 +111,31 @@ def get_contact_info(request):
     """
     if request.method == 'GET':
         chat_room_id = request.GET.get('chat_room_id')
-        
+        current_user = request.user.email
         # chat_room_id에 해당하는 채팅방을 가져옵니다.
         chat_room = get_object_or_404(chatroom, id=chat_room_id)
-
+        chat_message = ChatMessage.objects.filter(chatroom_id = chat_room_id)
         # 가져온 채팅방에서 상대방 아이디 또는 다른 필요한 정보를 추출합니다.
-        contact_info = chat_room.post_id.author.email  # 상대방 아이디 예시
+        temp_info = chat_room.post_id.author.email  # 상대방 아이디 예시
+        temp_info2 = chat_room.user.email
+        # 현재 로그인한 사람과 같은 값이면 다른 값으로 변경 (ex: 로그인=A 채팅방 상대 =A 일시 B로 변경하는 코드)
+        if current_user == temp_info:
+            contact_info = temp_info2
+        else:
+            contact_info = temp_info        
         title_info = chat_room.post_id.title
         price_info = chat_room.post_id.price
+        messages_data = []
+        for message in chat_message:
+            message_data = {
+                'content': message.content,
+                'send_at': message.send_at,
+                'sender': message.sender.id,  # 발신자의 username을 가져옴
+            }
+            messages_data.append(message_data)
         # 상대방 아이디 또는 다른 정보를 JSON 응답으로 반환합니다.
-        return JsonResponse({'contactInfo': contact_info, 'titleInfo':title_info, 'priceInfo':price_info})
-
-def send_message(request):
-    """
-    메세지 DB에 저장하기 위한 함수
-    """
-    if request.method == 'POST':
-        sender_id = request.user.id  # 현재 로그인한 사용자가 발신자
-        send_at = timezone.now()
-        message_text = request.POST.get('message_text')  # 메시지 내용을 POST 데이터로 받아옴
-        chat_room_id = request.POST.get('data-chat-room-id')
-        # 수신자를 ID로 가져옴
-
-        # 채팅 메시지 저장
-        chat_message = ChatMessage(sender=sender_id, content=message_text, send_at=send_at, chatroom_id=chat_room_id)
-        chat_message.save()
-
-        return JsonResponse({'success': True})
-    else:
-        return JsonResponse({'success': False, 'error': 'Invalid request method'})
+        return JsonResponse({'contactInfo': contact_info, 'titleInfo':title_info, 'priceInfo':price_info, 
+                             'messages':messages_data})
 
 #검색기능
 def search_view(request):
@@ -140,9 +176,9 @@ def author_detail_view(request, author):
     """
     판매자 모든 물품 보는 함수
     """
-    posts = get_object_or_404(Post, author=author)
-    user = get_object_or_404(User, user_id=author)
-    return render(request, "daangn_app/author_detail.html", {"posts": posts, "user": user})
+    posts = Post.objects.filter(author=author)
+    post_user = User.objects.get(id=author)
+    return render(request, "daangn_app/author_detail.html", {"posts": posts, "post_user":post_user})
 
 
 class PostImageForm(forms.PostForm):  # ModelForm을 상속합니다.
@@ -384,3 +420,14 @@ def location_certification_view(request):
         "certified": True,
     }
     return redirect(reverse("daangn_app:location"))
+
+# 메세지를 DB에 저장하는 함수
+def create_chat_message(sender, content, chatroom_id, send_at):
+    chat_message = ChatMessage.objects.create(sender=sender, content=content, chatroom_id=chatroom_id, send_at=send_at)
+    chat_message.save()
+    
+# 채팅방 시간 변경하는 함수
+def change_chatroom_time(chatroom_id):
+    chat_room = chatroom.objects.filter(id=chatroom_id).first()
+    chat_room.created_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    chat_room.save()

@@ -92,9 +92,12 @@
           <div class="card-box">
             <a href="{% url 'daangn_app:trade-post' post.pk %}" class="trade-text-link">
               <div class="card-img">
-                {% if post.images %}
-                <img src="{{ post.images.url }}" alt="{{ post.title }}">
+                {% if post.postimage_set.first.image %}
+                  <img src="{{ post.postimage_set.first.image.url }}" alt="">
+                {% else %}
+                  <img>
                 {% endif %}
+                
               </div>
               <div class="card-info-box">
                 <h5>{{ post.title }}</h5>
@@ -111,7 +114,7 @@
             </a>
           </div>
           {% endfor %}
-
+          
         </div>
         <a href="/trade">인기매물 더 보기</a>
       </div>

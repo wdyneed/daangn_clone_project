@@ -71,7 +71,6 @@ class chatroom(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
-
 class ChatMessage(models.Model):
     chatroom_id = models.ForeignKey(chatroom, on_delete=models.CASCADE)
     content = models.TextField()
@@ -87,11 +86,14 @@ def image_upload_path(instance, filename):
 
 # 다중 이미지 업로드를 위한 테이블
 class PostImage(models.Model):
-    post = models.ForeignKey("Post", on_delete=models.CASCADE, related_name="image")
-    image = models.ImageField(null=True, upload_to="image_upload_path", blank=True)
+    post = models.ForeignKey(Post, on_delete=models.CASCADE)
+    image = models.ImageField(null=True, upload_to="image_upload_path/", blank=True)
 
     def __int__(self):
         return self.id
 
-    class Meta:
-        db_table = "post_image"
+# 웹 소켓 disconnect 저장 테이블
+class DisconnectInfo(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)  # 사용자와 연결
+    chat_room = models.ForeignKey(chatroom, on_delete=models.CASCADE, null=True)  # 나갔던 채팅방의 ID
+    disconnect_time = models.DateTimeField()  # 나갔던 시간

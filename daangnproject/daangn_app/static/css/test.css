@@ -109,7 +109,7 @@ hr{
 }
 
 .chat-list-box{
-    width: 100%;    
+    width: 100%;
 }
 
 .chat-box{
@@ -136,6 +136,19 @@ hr{
 
 .s-text{
     margin-left: 4px;
+    font-size: 13px;
+    opacity: 0.5;
+}
+
+.s-my-text{
+    margin-left: 650px;
+    font-size: 13px;
+    opacity: 0.5;
+    display: flex;
+}
+
+.s-notmy-text{
+    margin-left: 80px;
     font-size: 13px;
     opacity: 0.5;
 }
@@ -206,24 +219,26 @@ hr{
     gap: 8px;
 }
 
-.message-text{
+.message-received{
     padding: 14px 20px;
     background-color: #eaeaea;
     width: fit-content;
     border-radius: 20px;
 }
 
-.from-me{
-    justify-content: flex-end;
-}
 
-.from-me div{
+.message-sent {
+    padding: 14px 20px;
+    width: fit-content;
+    display: flex;
+    margin-left: auto;
     background-color: #fa6616;
     color: #fff;
+    border-radius: 20px;
 }
 
 /* 작성창 */
-.chat-input{
+.chat-input {
     background-color: #fff;
     margin: 20px;
     border:1px solid #818181;
@@ -258,4 +273,26 @@ hr{
     padding: 6px 20px;
     border-radius: 4px;
     margin: 16px;
+}
+#chat-messages {
+    height: 280px;
+    overflow-y: auto;
+}
+
+#chat-messages::-webkit-scrollbar {
+    width: 3px;
+}
+
+#chat-messages::-webkit-scrollbar-thumb {
+    background-color: #303030;
+}
+
+#chat-messages::-webkit-scrollbar-track {
+    background-color: #212121;
+}
+
+.chat-real-select-container {
+    overflow-y: auto;
+    width: 360px;
+    height: 450px;
 }
