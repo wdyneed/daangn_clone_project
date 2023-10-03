@@ -24,7 +24,7 @@ urlpatterns = [
     path("trade/", views.trade_view, name="trade"),
     path("post/<int:post_id>/", views.trade_post_view, name="post"),
     path("chat/", views.chat_view, name="chat"),
-    path("author_detail/<str:author>/", views.author_detail_view, name="author_detail"),
+    path("author_detail/<int:author>/", views.author_detail_view, name="author_detail"),
     path("api/", include(router.urls)),
     path("logout/", views.log_out, name="logout"),
     path("trade-post/<int:post_id>", views.trade_post_view, name="trade-post"),
@@ -42,7 +42,5 @@ urlpatterns = [
     ),    
     path('get_contact_info/', views.get_contact_info, name="get_contact_info"),
     path("myinfo/", UpdateUserInfoView.as_view(), name="update_user_info"),
-]
-
-if settings.DEBUG:
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    path('filter_chat_rooms/', views.filter_chat_rooms, name='filter_chat_rooms'),
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

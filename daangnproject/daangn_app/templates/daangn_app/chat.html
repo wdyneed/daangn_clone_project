@@ -15,10 +15,17 @@
   </head>
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script>
+    let prevTime2 = null
     function handleIncomingMessage(message, isSentByMe) {
       const date = new Date()
       const messageContainer = document.createElement('div');
       const timeContainer = document.createElement('p');
+      const options = {
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: true, // true로 설정하면 오전/오후 형식으로 표시
+      };
+      const timeString = date.toLocaleTimeString('ko-kr', options);
       if (isSentByMe) {
           messageContainer.classList.add('message-sent');
           timeContainer.classList.add('s-my-text');
@@ -27,15 +34,77 @@
           timeContainer.classList.add('s-notmy-text');
       }
       messageContainer.textContent = message;
-      timeContainer.textContent = date.toLocaleTimeString('ko-kr', { hour: '2-digit', minute: '2-digit' });
+      if (prevTime2 !== null && timeString !== prevTime2) {
+        timeContainer.textContent = timeString;
+      }
       // 메시지를 표시할 컨테이너에 추가
       const chatMessagesContainer = document.querySelector('.message-container');
       chatMessagesContainer.appendChild(messageContainer);
       chatMessagesContainer.appendChild(timeContainer);
     }
 
-
+    let chatSocket = null;
     document.addEventListener('DOMContentLoaded', function () {
+        const chatMessages= document.getElementById('chat-messages');
+        function scrollToBottom() {
+          chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+        function prepareScroll() {
+          window.setTimeout(scrollToBottom, 50);
+        }
+        /*
+        채팅방 리스트 필터링을 위한 부분 아직 미완성
+        const unreadCheckbox = document.getElementById('unread-checkbox');
+
+        $(document).ready(function() {
+          $("#unread-checkbox").change(function() {
+              // 체크박스 상태 가져오기
+              var isChecked = this.checked;
+      
+              // 서버에 체크박스 상태를 전송
+              if (isChecked) {
+                $.ajax({
+                  url: '/filter_chat_rooms/',
+                  type: 'GET',
+                  data: {
+                      unread_checkbox: isChecked
+                  },
+                  success: function(data) {
+                    const chatRoomsContainer = document.querySelector('.chat-real-select-container');
+                    chatRoomsContainer.innerHTML = '';
+                    data.chatRooms.forEach(function (chatRoomData) {
+                      // 각 채팅방 데이터를 사용하여 HTML을 생성하고 목록에 추가
+                      const chatRoomElement = document.createElement('a');
+                      chatRoomElement.className = 'chat-room';
+                      chatRoomElement.setAttribute('data-chat-room-id', chatRoomData.id);
+                      const chatroomdataHTML = `
+                        <div class="flex-box chat-box between">
+                          <div>
+                            <div class="flex-box">
+                                <p class="bold">${ chatRoomData.email}</p>
+                                <p class="s-text">${ chatRoomData.wt_location }</p>
+                                <p class="s-text">${ chatRoomData.created_at }</p>
+                            </div>
+                            <p class="chat-thumb-text">${ chatRoomData.title }</p>
+                          </div>
+                          <div class="thumbnail-box">
+                            <img src="" alt="">
+                          </div>
+                        </div>
+                      `
+                      chatRoomElement.innerHTML = chatroomdataHTML;
+                      chatRoomsContainer.appendChild(chatRoomElement);
+                    });
+                  },
+                  error: function() {
+                   
+                    }
+                });
+              }
+              
+          });
+      });
+      */
         // 클릭 이벤트 핸들러 등록
         document.querySelectorAll('.chat-room').forEach(function (chatRoomElement) {
             chatRoomElement.addEventListener('click', function () {
@@ -44,11 +113,13 @@
         });
 
         function handleChatRoomClick(chatRoomElement) {
+            if (chatSocket !== null && chatSocket.readyState === WebSocket.OPEN) {
+              chatSocket.close();
+            }
             const chatRoomId = chatRoomElement.getAttribute('data-chat-room-id');
             const chatMessagesContainer = document.getElementById('chat-messages-container');
             
-            // 웹소켓 연결 및 메시지 처리 로직을 추가해야 합니다.
-            // 이 부분은 웹소켓 서버에 대한 연결 및 메시지 처리 로직을 작성해야 합니다.
+
 
             // AJAX 요청 (GET)
             $.ajax({
@@ -57,54 +128,99 @@
                 data: { chat_room_id: chatRoomId },
                 success: function (data) {
                     const contact = document.getElementById("temp-info");
+                    const content = document.getElementById("chat-messages");
+                    const product = document.getElementById("product_detail");
+                    let prevTime = null;
                     // 서버로부터 받은 데이터를 화면에 표시
                     contact.innerHTML = `<p>${data.contactInfo}</p>`;
-                    const product = document.getElementById("product_detail");
                     product.innerHTML = `<p>${data.titleInfo}</p>
                     <p class="bold">${data.priceInfo}</p>`;
+                    content.innerHTML = '';
+                    data.messages.forEach(function (messageData) {
+                      const messageContainer = document.createElement('div');
+                      const timeContainer = document.createElement('p');
+                      const date = new Date(messageData.send_at);
+                      const options = {
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        hour12: true, // true로 설정하면 오전/오후 형식으로 표시
+                      };
+                      const timeString = date.toLocaleTimeString('ko-kr', options);
+                      messageContainer.textContent = messageData.content;
+                      if (timeString !== prevTime) {
+                        timeContainer.textContent = timeString;
+                        prevTime = timeString;
+                      }
+                      
+                      if (messageData.sender === {{ request.user.id }}) {
+                          messageContainer.classList.add('message-sent');
+                          timeContainer.classList.add('s-my-text');
+                      } else {
+                          messageContainer.classList.add('message-received');
+                          timeContainer.classList.add('s-notmy-text');
+                      }
+                      content.appendChild(messageContainer);
+                      if (timeContainer.textContent) {
+                        content.appendChild(timeContainer);
+                      }
+                      
+                  });
+                  prepareScroll();
                 },
                 error: function (error) {
                     console.error('Error:', error);
                 }
             });
-
-            const chatSocket = new WebSocket(
-              `ws://${window.location.host}/ws/chat/${chatRoomId}/`
-            );
-            var check = true;
             
-            chatSocket.onmessage = function(e) {
-              const data = JSON.parse(e.data);
+            if (chatSocket === null || chatSocket.readyState !== WebSocket.OPEN) {
+              chatSocket = new WebSocket(
+                `ws://${window.location.host}/ws/chat/${chatRoomId}/`
+              );
+              var check = true;
               
-              if (data.isSentByMe == {{ request.user.id }}) {
-                check = true;
-              }
-              else{
-                check = false;
-              }
-              handleIncomingMessage(data.message, check);
-            };
-    
-            chatSocket.onclose = function(e) {
-                console.error('Chat socket closed unexpectedly');
-            };
+              chatSocket.onmessage = function(e) {
+                const data = JSON.parse(e.data);
+                
+                if (data.isSentByMe == {{ request.user.id }}) {
+                  check = true;
+                }
+                else{
+                  check = false;
+                }
+                handleIncomingMessage(data.message, check);
+                prepareScroll();
+              };
+      
+              chatSocket.onclose = function(e) {
+                  console.error('Chat socket closed unexpectedly');
+              };
+            }
+            
     
             document.querySelector('#message').focus();
             document.querySelector('#message').addEventListener('keydown', function (e) {
                 if (e.key === 'Enter' || e.keyCode === 13) {  // enter, return
                   e.preventDefault();
-                  document.querySelector('#chat-message-submit').click();
+                  const messageInputDom = document.querySelector('#message');
+                  const message = messageInputDom.value.trim();
+                  if (message) {
+                    document.querySelector('#chat-message-submit').click();
+                  }
                 }
-            });
+              });
     
             document.querySelector('#chat-message-submit').onclick = function(e) {
                 e.preventDefault();
                 const messageInputDom = document.querySelector('#message');
-                const message = messageInputDom.value;
-                chatSocket.send(JSON.stringify({
+                const message = messageInputDom.value.trim();
+                if (message) {
+                  chatSocket.send(JSON.stringify({
                     'message': message
-                }));
+                  }));
+                }
+                
                 messageInputDom.value = '';
+                prepareScroll();
             };
         }
     });
@@ -125,7 +241,7 @@
                 <div>
                   <label>
                     안읽은 메세지만 보기
-                    <input type="checkbox" name="" id="">
+                    <input type="checkbox" name="unread-checkbox" id="unread-checkbox">
                   </label>
                 </div>
               </div>
@@ -144,41 +260,42 @@
                 </div>
               </div>
               <!-- 채팅방리스트 -->
-              
-              {% for chat_room in chat_rooms %}
-              <a class="chat-room" data-chat-room-id="{{ chat_room.id }}">
-                  <div class="flex-box chat-box between">
-                      <div>
-                          <div class="flex-box">
-                              <p class="bold">{{ chat_room.post_id.author.email }}</p>
-                              <p class="s-text">{{ chat_room.post_id.wt_location }}</p>
-                              <p class="s-text">{{ chat_room.created_at|custom_timesince }}</p>
-                          </div>
-                          <p class="chat-thumb-text">{{ chat_room.post_id.title }}</p>
-                      </div>
-                      <div class="thumbnail-box">
-                          <img src="" alt="">
-                      </div>
-                  </div>
-              </a>
-              {% endfor %}
-              {% for receive_chat_room in receive_chat_rooms %}
-              <a class="chat-room" data-chat-room-id="{{ receive_chat_room.id }}">
-                  <div class="flex-box chat-box between">
-                      <div>
-                          <div class="flex-box">
-                              <p class="bold">{{ receive_chat_room.user.email }}</p>
-                              <p class="s-text">{{ receive_chat_room.post_id.wt_location }}</p>
-                              <p class="s-text">{{ receive_chat_room.created_at|custom_timesince }}</p>
-                          </div>
-                          <p class="chat-thumb-text">{{ receive_chat_room.post_id.title }}</p>
-                      </div>
-                      <div class="thumbnail-box">
-                          <img src="" alt="">
-                      </div>
-                  </div>
-              </a>
-              {% endfor %}
+              <div class='chat-real-select-container'>
+                {% for chat_room in chat_rooms %}
+                <a class="chat-room" data-chat-room-id="{{ chat_room.id }}">
+                    <div class="flex-box chat-box between">
+                        <div>
+                            <div class="flex-box">
+                                <p class="bold">{{ chat_room.post_id.author.email }}</p>
+                                <p class="s-text">{{ chat_room.post_id.wt_location }}</p>
+                                <p class="s-text">{{ chat_room.created_at|custom_timesince }}</p>
+                            </div>
+                            <p class="chat-thumb-text">{{ chat_room.post_id.title }}</p>
+                        </div>
+                        <div class="thumbnail-box">
+                            <img src="" alt="">
+                        </div>
+                    </div>
+                </a>
+                {% endfor %}
+                {% for receive_chat_room in receive_chat_rooms %}
+                <a class="chat-room" data-chat-room-id="{{ receive_chat_room.id }}">
+                    <div class="flex-box chat-box between">
+                        <div>
+                            <div class="flex-box">
+                                <p class="bold">{{ receive_chat_room.user.email }}</p>
+                                <p class="s-text">{{ receive_chat_room.post_id.wt_location }}</p>
+                                <p class="s-text">{{ receive_chat_room.created_at|custom_timesince }}</p>
+                            </div>
+                            <p class="chat-thumb-text">{{ receive_chat_room.post_id.title }}</p>
+                        </div>
+                        <div class="thumbnail-box">
+                            <img src="" alt="">
+                        </div>
+                    </div>
+                </a>
+                {% endfor %}
+              </div>
             </div>
           </div>
           <!-- 채팅창-->

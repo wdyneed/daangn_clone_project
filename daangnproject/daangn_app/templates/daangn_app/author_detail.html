@@ -1,29 +1,82 @@
 <!DOCTYPE html>
+{% load static%}{% load humanize %}
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <link rel="stylesheet" type="text/css" href="{% static 'css/reset.css' %}" />
+    <link rel="stylesheet" type="text/css" href="{% static 'css/global.css' %}" />
+    <link rel="stylesheet" href="{% static "css/author_detail.css" %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'css/nav.css' %}" />
+    <link rel="stylesheet" type="text/css" href="{% static 'css/footer.css' %}" />
+    <title>{{ user.email }}님의 프로필</title>
 </head>
 <body>
     {% comment %} 판매자 모든 물품 보는 페이지 {% endcomment %}
     {% include 'daangn_app/nav.html' %}
-        <div class="user section">
-            <img src="{{ user.user_img }}">
-            <h3> {{ user.user_id }} </h3>
-            <p>{{ user.location }}</p>
+    <div class="container column center">
+        <div class="full-box trade-box column">
+          <div class="flex-box full-box card-container between">
+                <div class="user_section">
+                    {% if post_user.user_img %}
+                        <img src="{{ post_user.user_img }}">
+                    {% else %}
+                        <img src="{% static "img/daangn.jpg" %}" alt="">
+                    {% endif %}
+                    <h2 id="nickname"> {{ post_user.email }} 
+                        <span id="region_name">{{ post_user.location }}</span>
+                    </h2>
+                </div>
+                
+            </div>
         </div>
-        <div>
-            <a>판매 물품()</a>
+    </div>
+    <div class="container column center">
+        <div class="full-box trade-box column">
+          <div class="flex-box full-box card-container between">
+                <div id="post_count">
+                    <h2>판매 물품({{ posts.count }})</h2>
+                </div>
+            </div>
         </div>
-        <div>
+    </div>
+
+
+
+
+    <div class="container column center">
+        <div class="full-box trade-box column">
+          <div class="flex-box full-box card-container between">
             {% for post in posts %}
-                {{ post.title }}
-                {{ post.price }}
-                {{ post.wt_location }}
+  
+              <div class="card-box">
+                <a href="{% url 'daangn_app:trade-post' post.pk %}" class="trade-text-link">
+                  <div class="card-img">
+                    {% if post.postimage_set.first.image %}
+                      <img src="{{ post.postimage_set.first.image.url }}" alt="">
+                    {% else %}
+                      <img>
+                    {% endif %}
+                  </div>
+                  <div class="card-info-box">
+                    <h5>{{ post.title }}</h5>
+                    <p class="bold">{{ post.price |intcomma}}원</p>
+                    <p>{{ post.location }}</p>
+                    <div class="flex-box">
+                      <p>조회
+                        {{ post.view_count }}</p>
+                      <p>·</p>
+                      <p>채팅
+                        {{ post.chat_num }}</p>
+                    </div>
+                  </div>
+                </a>
+              </div>
             {% endfor %}
-            
+  
+          </div>
         </div>
+      </div>
 
     {% include 'daangn_app/footer.html' %}
 </body>

@@ -109,7 +109,7 @@ hr{
 }
 
 .chat-list-box{
-    width: 100%;    
+    width: 100%;
 }
 
 .chat-box{
@@ -273,4 +273,26 @@ hr{
     padding: 6px 20px;
     border-radius: 4px;
     margin: 16px;
+}
+#chat-messages {
+    height: 280px;
+    overflow-y: auto;
+}
+
+#chat-messages::-webkit-scrollbar {
+    width: 3px;
+}
+
+#chat-messages::-webkit-scrollbar-thumb {
+    background-color: #303030;
+}
+
+#chat-messages::-webkit-scrollbar-track {
+    background-color: #212121;
+}
+
+.chat-real-select-container {
+    overflow-y: auto;
+    width: 360px;
+    height: 450px;
 }
