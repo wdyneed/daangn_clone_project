@@ -4,7 +4,7 @@ from django.conf import settings
 from django.conf.urls.static import static
 from . import views
 from rest_framework.routers import DefaultRouter
-from .views import PostViewSet, PostImageViewSet, LoginView, RegisterView
+from .views import PostViewSet, PostImageViewSet, LoginView, RegisterView, UpdateUserInfoView
 
 app_name = "daangn_app"
 router = DefaultRouter()
@@ -41,12 +41,11 @@ urlpatterns = [
     path('filter_chat_rooms/', views.filter_chat_rooms, name='filter_chat_rooms'),
     path('change_status/<int:post_id>/', views.change_status, name='change_status'),
     path('get_last_message/', views.get_last_message, name="get_last_message"),
-] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
-        "api/post/<int:post_pk>/images/",
+    path("api/post/<int:post_pk>/images/",
         PostImageViewSet.as_view({"post": "create"}),
-        name="post-image",
-    ),
-]
+        name="post-image"),
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+        
 
-if settings.DEBUG:
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
+
