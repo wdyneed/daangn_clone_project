@@ -12,23 +12,17 @@
 input {
     width: -webkit-fill-available;
     background-color: #fff;
-    border: 1px solid #fa6616;
+    border: 1px solid #1caf0f;
     border-radius: 100px;
     padding: 13px;
 }
 
-.login-form {
-    display: flex;
-    flex-direction: column;
-    gap: 30px;
-    margin-top: 90px;
-}
 
 .current-profile-image {
     width: 300px;
     height: 300px;
     border-radius: 50%;
-    border: 3px solid #fa6616;
+    border: 3px solid #1caf0f;
     background-color: #fff;
     margin-left: 60px;
 }
@@ -37,7 +31,7 @@ input {
     display: flex;
     flex-direction: column;
     gap: 20px;
-    margin-top: 90px;
+    margin-top: 90px
 }
 
 .login-form label {
@@ -48,7 +42,7 @@ input {
 
 .login-button {
     width: 100%;
-    background-color: #fa6616;
+    background-color: #1caf0f;
     border-radius: 100px;
     padding: 13px;
     border: none;
@@ -64,7 +58,7 @@ input {
 }
 
 button:hover {
-    background-color: #ff823f;
+    background-color: #40ad36;
 }
 
 .register-reco {
@@ -77,5 +71,4 @@ button:hover {
     text-decoration: none;
     color: #ff823f;
     cursor: pointer;
-    margin-bottom: 30px;
 }

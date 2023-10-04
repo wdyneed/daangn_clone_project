@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404, reverse
 from .models import Post, PostImage, chatroom, ChatMessage, User, DisconnectInfo
-from .forms import PostForm, LoginForm, UpdateUserInfoForm
+from .forms import PostForm, LoginForm, UpdateNicknameForm
 from django.contrib import messages
 from django.db.models import Q, F, ExpressionWrapper, Exists, OuterRef, Subquery, DateTimeField
 from .serializers import PostSerializer, PostImageSerializer
@@ -400,12 +400,12 @@ def log_out(request):
     return redirect(reverse("daangn_app:login"))
 
 
-# 내정보 수정기능 (미완성, 일단 예시로 이메일이랑 이름 수정 테스트중)
+# 별명, 사진 수정하기
 
 
 class UpdateUserInfoView(View):
     template_name = "registration/myinfo.html"
-    form_class = UpdateUserInfoForm
+    form_class = UpdateNicknameForm
 
     def get(self, request):
         user = request.user
@@ -414,10 +414,10 @@ class UpdateUserInfoView(View):
 
     def post(self, request):
         user = request.user
-        form = self.form_class(request.POST, instance=user)
+        form = self.form_class(request.POST, request.FILES, instance=user)
         if form.is_valid():
             form.save()
-            messages.success(request, "유저 정보가 성공적으로 수정되었습니다.")
+            messages.success(request, "별명과 프로필 이미지가 성공적으로 수정되었습니다.")
             return redirect("daangn_app:main")
         return render(request, self.template_name, {"update_form": form})
 

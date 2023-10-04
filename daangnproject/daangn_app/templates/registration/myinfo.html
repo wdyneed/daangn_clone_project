@@ -10,8 +10,8 @@
     <link rel="stylesheet" type="text/css" href="{% static 'css/global.css' %}"/>
     <link rel="stylesheet" type="text/css" href="{% static 'css/nav.css' %}"/>
     <link rel="stylesheet" type="text/css" href="{% static 'css/footer.css' %}"/>
-    <link rel="stylesheet" type="text/css" href="{% static 'css/login.css' %}"/>
-    <title>Document</title>
+    <link rel="stylesheet" type="text/css" href="{% static 'css/myinfo.css' %}"/>
+    <title>내 정보 수정</title>
   </head>
 
   <body class="back-ye">
@@ -19,9 +19,15 @@
     <div class="container">
       {% block content %}
         <div class="infoUpdate-container">
-            <form method="post" class="login-form" enctype="multipart/form-data">
+            <form method="post" class="register-form" enctype="multipart/form-data">
                 {% csrf_token %}
-                {{ update_form.as_p }}
+                {% if user.user_img %}
+                    <img src="{{ user.user_img.url }}" alt="Profile Image" class="current-profile-image">
+                {% else %}
+                    <p>No image</p>
+                {% endif %}
+                {{ update_form.profile_image.label_tag }} {{ update_form.profile_image }}
+                {{ update_form.nickname.label_tag }} {{ update_form.nickname }}                
                 <button type="submit" class="login-button">수정하기</button>
             </form>
         </div>
