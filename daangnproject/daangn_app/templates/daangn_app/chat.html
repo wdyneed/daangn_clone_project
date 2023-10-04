@@ -344,7 +344,7 @@
                     <div class="flex-box chat-box between">
                       <div class="human-profile">
                         {% if chat_room.post_id.author.user_img %}
-                          <img src="{{ chat_room.post_id.author.user_img }}" alt="">
+                          <img src="{{ chat_room.post_id.author.user_img.url }}" alt="">
                         {% elif chat_room.post_id.author.user_img == null %}
                           <img src="{% static 'img/basicuserimg.png' %}">
                         {% else %}
