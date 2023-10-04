@@ -4,7 +4,13 @@ from django.conf import settings
 from django.conf.urls.static import static
 from . import views
 from rest_framework.routers import DefaultRouter
-from .views import PostViewSet, PostImageViewSet, LoginView, RegisterView, UpdateUserInfoView
+from .views import (
+    PostViewSet,
+    PostImageViewSet,
+    LoginView,
+    RegisterView,
+    UpdateUserInfoView,
+)
 
 app_name = "daangn_app"
 router = DefaultRouter()
@@ -22,6 +28,7 @@ urlpatterns = [
     path("write/", views.create_or_edit_post, name="write"),
     path("edit/<int:post_id>/", views.create_or_edit_post, name="edit"),
     path("trade/", views.trade_view, name="trade"),
+    path("trade/<slug:category>", views.trade_view_category, name="trade_category"),
     path("post/<int:post_id>/", views.trade_post_view, name="post"),
     path("chat/", views.chat_view, name="chat"),
     path("author_detail/<int:author>/", views.author_detail_view, name="author_detail"),
@@ -39,8 +46,8 @@ urlpatterns = [
         "location_certification/",
         views.location_certification_view,
         name="location_certification",
-    ),    
-    path('get_contact_info/', views.get_contact_info, name="get_contact_info"),
+    ),
+    path("get_contact_info/", views.get_contact_info, name="get_contact_info"),
     path("myinfo/", UpdateUserInfoView.as_view(), name="update_user_info"),
-    path('filter_chat_rooms/', views.filter_chat_rooms, name='filter_chat_rooms'),
+    path("filter_chat_rooms/", views.filter_chat_rooms, name="filter_chat_rooms"),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

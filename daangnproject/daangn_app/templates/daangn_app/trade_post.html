@@ -93,6 +93,11 @@
                 <h3>{{ post.price |intcomma}}
                   원</h3>
               </div>
+              <div class="post-sub-info-box">
+                <span ><a class="category" href="{% url 'daangn_app:trade_category' post.category %}">{{post.category}}</a></span>
+                <span>∙</span>
+                <span id="post_time">{{post.created_at}}</span>
+              </div>
               <p>{{ post.description }}</p>
               <div class="location-views-box flex-box between">
                 <p>희망 거래장소 |
@@ -108,5 +113,4 @@
     {% include 'daangn_app/footer.html' %}
 
 </body>
-
 </html>
