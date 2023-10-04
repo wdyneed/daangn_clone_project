@@ -32,6 +32,16 @@ urlpatterns = [
     path("trade-post/<int:pk>/", views.trade_post_view, name="trade_post"),
     path("trade-post/<int:pk>/delete/", views.delete_post_view, name="delete_post"),
     path(
+        "location_certification/",
+        views.location_certification_view,
+        name="location_certification",
+    ),    
+    path('get_contact_info/', views.get_contact_info, name="get_contact_info"),
+    path("myinfo/", UpdateUserInfoView.as_view(), name="update_user_info"),
+    path('filter_chat_rooms/', views.filter_chat_rooms, name='filter_chat_rooms'),
+    path('change_status/<int:post_id>/', views.change_status, name='change_status'),
+    path('get_last_message/', views.get_last_message, name="get_last_message"),
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
         "api/post/<int:post_pk>/images/",
         PostImageViewSet.as_view({"post": "create"}),
         name="post-image",

@@ -7,4 +7,5 @@ register = template.Library()
 def custom_filter(value):
     # 필터 로직을 여기에 구현
     # value를 가공하고 반환
-    return transformed_value
+    pass
+    #return transformed_value

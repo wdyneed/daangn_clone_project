@@ -56,33 +56,70 @@ def filter_chat_rooms(request):
     채팅방 리스트 필터링 함수
     읽지 않은 채팅방만 보여주는 함수입니다.
     """
-    is_unread = request.GET.get("unread_checkbox") == "true"
-    current_user_id = request.user.id
-    temp2 = Post.objects.filter(author_id=current_user_id)
-    post_ids = [post.id for post in temp2]
-    chat_rooms = chatroom.objects.filter(user_id=current_user_id)
-    receive_chat_rooms = chatroom.objects.filter(post_id__in=post_ids)
-    excluded_ids = []
-    for i in chat_rooms:
-        if DisconnectInfo.objects.filter(chat_room_id=i.id).first():
-            check = DisconnectInfo.objects.filter(chat_room_id=i.id).first()
-            if i.created_at > check.disconnect_time:
-                excluded_ids.append(check.chat_room.id)
-
-    real_chat_rooms = chatroom.objects.filter(user_id=current_user_id).exclude(id__in=excluded_ids)
-    r_data = []
-    for r in real_chat_rooms:
-        r_d = {
-            "email": r.post_id.author.email,
-            "wt_location": r.post_id.wt_location,
-            "created_at": r.created_at,
-            "title": r.post_id.title,
-        }
-        r_data.append(r_d)
-
-    return JsonResponse({"chatRooms": r_d})
-
-
+    if request.method == 'GET':
+        current_user_id = request.user.id
+        temp2 = Post.objects.filter(author_id = current_user_id)
+        post_ids = [post.id for post in temp2]
+        chat_rooms = chatroom.objects.filter(user_id=current_user_id)
+        receive_chat_rooms = chatroom.objects.filter(post_id__in=post_ids)
+        excluded_ids = []
+        excluded_ids2 = []
+        for i in chat_rooms:
+            if DisconnectInfo.objects.get(chat_room_id=i.id, user_id=current_user_id):
+                check = DisconnectInfo.objects.get(chat_room_id=i.id, user_id=current_user_id)
+                if i.created_at < check.disconnect_time:
+                    excluded_ids.append(i.id)
+        for i in receive_chat_rooms:
+            if DisconnectInfo.objects.filter(chat_room_id=i.id, user_id=current_user_id):
+                check = DisconnectInfo.objects.get(chat_room_id=i.id, user_id=current_user_id)
+                if i.created_at < check.disconnect_time:
+                    excluded_ids2.append(i.id)
+        real_chat_rooms = chatroom.objects.filter(user_id=current_user_id).exclude(id__in=excluded_ids)
+        real_receive_chat_rooms = chatroom.objects.filter(post_id__in=post_ids).exclude(id__in=excluded_ids2)
+        r_data = []
+        for r in real_chat_rooms:
+            r_d = {
+                'id': r.id,
+                'email' : r.post_id.author.email,
+                'wt_location': r.post_id.wt_location,
+                'created_at': r.created_at,
+                'title': r.post_id.title
+            }
+            r_data.append(r_d)
+            
+        for r in real_receive_chat_rooms:
+            r_d = {
+                'id' : r.id,
+                'email' : r.user.email,
+                'wt_location': r.post_id.wt_location,
+                'created_at': r.created_at,
+                'title': r.post_id.title
+            }
+            r_data.append(r_d)
+            
+        n_data = []
+        for n in chat_rooms:
+            n_d = {
+                'id': n.id,
+                'email' : n.post_id.author.email,
+                'wt_location': n.post_id.wt_location,
+                'created_at': n.created_at,
+                'title': n.post_id.title
+            }
+            n_data.append(n_d)
+        for n in receive_chat_rooms:
+            n_d = {
+                'id' : n.id,
+                'email' : n.user.email,
+                'wt_location': n.post_id.wt_location,
+                'created_at': n.created_at,
+                'title': n.post_id.title
+            }
+            n_data.append(n_d)
+        
+        return JsonResponse({'chatRooms': r_data, 'originchatRooms':n_data})
+            
+    
 def create_chat_room(request):
     """
     채팅방 생성하는 함수
@@ -111,15 +148,15 @@ def get_contact_info(request):
     """
     채팅페이지 각 채팅방별 정보 갖고오는 함수
     """
-    if request.method == "GET":
-        chat_room_id = request.GET.get("chat_room_id")
-        current_user = request.user.email
+    if request.method == 'GET':
+        chat_room_id = request.GET.get('chat_room_id')
+        current_user = request.user.nickname
         # chat_room_id에 해당하는 채팅방을 가져옵니다.
         chat_room = get_object_or_404(chatroom, id=chat_room_id)
         chat_message = ChatMessage.objects.filter(chatroom_id=chat_room_id)
         # 가져온 채팅방에서 상대방 아이디 또는 다른 필요한 정보를 추출합니다.
-        temp_info = chat_room.post_id.author.email  # 상대방 아이디 예시
-        temp_info2 = chat_room.user.email
+        temp_info = chat_room.post_id.author.nickname  # 상대방 아이디 예시
+        temp_info2 = chat_room.user.nickname
         # 현재 로그인한 사람과 같은 값이면 다른 값으로 변경 (ex: 로그인=A 채팅방 상대 =A 일시 B로 변경하는 코드)
         if current_user == temp_info:
             contact_info = temp_info2
@@ -127,6 +164,9 @@ def get_contact_info(request):
             contact_info = temp_info
         title_info = chat_room.post_id.title
         price_info = chat_room.post_id.price
+        status_info = chat_room.post_id.status
+        product_img = PostImage.objects.filter(post_id=chat_room.post_id).first()
+        product_img_info = product_img.image.url
         messages_data = []
         for message in chat_message:
             message_data = {
@@ -136,17 +176,39 @@ def get_contact_info(request):
             }
             messages_data.append(message_data)
         # 상대방 아이디 또는 다른 정보를 JSON 응답으로 반환합니다.
-        return JsonResponse(
-            {
-                "contactInfo": contact_info,
-                "titleInfo": title_info,
-                "priceInfo": price_info,
-                "messages": messages_data,
+        return JsonResponse({'contactInfo': contact_info, 'titleInfo':title_info, 'priceInfo':price_info, 
+                             'statusInfo':status_info,'productimgInfo':product_img_info,'messages':messages_data})
+
+
+def get_last_message(request):
+    if request.method == 'GET':
+        chat_room_id = request.GET.get('chat_room_id')
+        try:
+            # 해당 채팅방의 마지막 메시지를 가져옵니다.
+            last_message = ChatMessage.objects.filter(chatroom_id=chat_room_id).latest('send_at')
+            data = {
+                'lastMessage': last_message.content,
+                'lastTime': last_message.send_at
             }
-        )
-
-
-# 검색기능
+            return JsonResponse(data)
+        except ChatMessage.DoesNotExist:
+            # 채팅 메시지가 없을 경우 처리
+            return JsonResponse({'lastMessage': ''})
+        
+# 메세지를 DB에 저장하는 함수
+def create_chat_message(sender, content, chatroom_id, send_at):
+    chat_message = ChatMessage.objects.create(sender=sender, content=content, chatroom_id=chatroom_id, send_at=send_at)
+    chat_message.save()
+    
+# 채팅방 시간 변경하는 함수
+def change_chatroom_time(chatroom_id):
+    chat_room = chatroom.objects.filter(id=chatroom_id).first()
+    chat_room.created_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    chat_room.save()  
+        
+# ============================================= 채팅 기능 끝 ======================================================== 
+        
+#검색기능
 def search_view(request):
     """
     검색기능 제공 함수
@@ -457,18 +519,15 @@ def location_certification_view(request):
         "certified": True,
     }
     return redirect(reverse("daangn_app:location"))
-
-
-# 메세지를 DB에 저장하는 함수
-def create_chat_message(sender, content, chatroom_id, send_at):
-    chat_message = ChatMessage.objects.create(
-        sender=sender, content=content, chatroom_id=chatroom_id, send_at=send_at
-    )
-    chat_message.save()
-
-
-# 채팅방 시간 변경하는 함수
-def change_chatroom_time(chatroom_id):
-    chat_room = chatroom.objects.filter(id=chatroom_id).first()
-    chat_room.created_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    chat_room.save()
+    
+def change_status(request, post_id):
+    try:
+        post = Post.objects.get(pk=post_id)
+        if post.status == "판매중":
+            post.status = "거래완료"
+        else:
+            post.status = "판매중"
+        post.save()
+        return JsonResponse({'success': True})
+    except Post.DoesNotExist:
+        return JsonResponse({'success': False, 'error_message': '게시물을 찾을 수 없습니다.'})
