@@ -74,7 +74,7 @@
                   <button class="orange">채팅보기</button>
                   <form method="post" action="{% url 'daangn_app:delete_post' post.id %}">
                     {% csrf_token %}
-                    <button type="submit" class="red">삭제하기</button>
+                    <button type="submit" class="delete_button">삭제하기</button>
                   </form>
                 </div>
               {% else %}
