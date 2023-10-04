@@ -43,4 +43,6 @@ urlpatterns = [
     path('get_contact_info/', views.get_contact_info, name="get_contact_info"),
     path("myinfo/", UpdateUserInfoView.as_view(), name="update_user_info"),
     path('filter_chat_rooms/', views.filter_chat_rooms, name='filter_chat_rooms'),
+    path('change_status/<int:post_id>/', views.change_status, name='change_status'),
+    path('get_last_message/', views.get_last_message, name="get_last_message"),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

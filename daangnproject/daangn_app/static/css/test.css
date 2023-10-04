@@ -129,6 +129,18 @@ hr{
     background-color: transparent;
 }
 
+.human-profile{
+    width: 48px;
+    height: 48px;
+    margin-right: 16px;
+}
+
+.human-profile img{
+    height: auto;
+    border-radius: 50%;
+    background-color: transparent;
+}
+
 .chat-thumb-text{
     margin-top: 4px;
     font-size: 15px;
@@ -154,7 +166,7 @@ hr{
 }
 
 .chat-box img{
-    height: auto;
+    height: 50px;
 }
 
 .thumbnail-box{
@@ -162,6 +174,11 @@ hr{
     height: 48px;
     background-color:#818181;
     border-radius: 8px;
+}
+
+.thumbnail-box img {
+    max-width: 100%;
+    max-height: 100%;
 }
 
 /* 채팅창 */

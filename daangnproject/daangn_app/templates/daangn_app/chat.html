@@ -16,6 +16,33 @@
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script>
     let prevTime2 = null
+
+    {% comment %} 시간 포매팅 함수 {% endcomment %}
+    function formatTimeAgo(timestamp) {
+      const messageTime = new Date(timestamp);
+      const now = new Date();
+      const year = messageTime.getFullYear();
+      const month = (messageTime.getMonth() + 1).toString().padStart(2, '0');
+      const day = messageTime.getDate().toString().padStart(2, '0');
+      const hours = messageTime.getHours().toString().padStart(2, '0');
+      const minutes = messageTime.getMinutes().toString().padStart(2, '0');
+    
+      if (
+        now.getFullYear() === year &&
+        now.getMonth() === messageTime.getMonth() &&
+        now.getDate() === messageTime.getDate()
+      ) {
+        // 같은 날인 경우
+        const period = hours >= 12 ? '오후' : '오전';
+        const formattedHours = hours % 12 || 12;
+        return `${period} ${formattedHours}:${minutes}`;
+      } else {
+        // 다른 날인 경우
+        return `${year}-${month}-${day}`;
+      }
+    }
+
+
     function handleIncomingMessage(message, isSentByMe) {
       const date = new Date()
       const messageContainer = document.createElement('div');
@@ -43,8 +70,108 @@
       chatMessagesContainer.appendChild(timeContainer);
     }
 
+    function updateLastMessage(chatRoomId) {
+      // chatRoomId를 사용하여 서버에서 마지막 메시지를 가져오는 AJAX 요청을 보냅니다.
+      $.ajax({
+        url: '/get_last_message/',
+        type: 'GET',
+        data: {
+          chat_room_id: chatRoomId
+        },
+        success: function(data) {
+          const chatRoomElement = document.querySelector(`.chat-room[data-chat-room-id="${chatRoomId}"]`);
+
+          // 서버로부터 받은 데이터를 사용하여 마지막 메시지를 업데이트합니다.
+          const lastMessageElement = chatRoomElement.querySelector('.chat-thumb-text');
+          const lastTimeElement = chatRoomElement.querySelector('.set_time');
+          const maxLength = 10;
+          if (data.lastMessage.length > maxLength) {
+            lastMessageElement.textContent = data.lastMessage.slice(0, maxLength) + '...';
+          } else {
+            lastMessageElement.textContent = data.lastMessage;
+          }
+
+          lastTimeElement.textContent = formatTimeAgo(data.lastTime);
+          
+        },
+        error: function() {
+          // 오류 처리를 수행할 수 있습니다.
+        }
+      });
+    }
+
     let chatSocket = null;
     document.addEventListener('DOMContentLoaded', function () {
+      const unreadCheckbox = document.getElementById('unread-checkbox');
+      
+    
+      $(document).ready(function() {
+        $("#unread-checkbox").change(function() {
+            // 체크박스 상태 가져오기
+            var isChecked = this.checked;
+    
+            // 서버에 체크박스 상태를 전송
+            if (isChecked) {
+              $.ajax({
+                url: '/filter_chat_rooms/',
+                type: 'GET',
+                data: {
+                    unread_checkbox: isChecked
+                },
+                success: function(data) {
+                  var chatRoomIdToHide = new Array();
+                  data.chatRooms.forEach(function (chatRoomData) {
+                    chatRoomIdToHide.push(chatRoomData.id)
+                  });
+                  // 모든 chat-room 요소를 선택
+                  const chatRoomElements = document.querySelectorAll('.chat-room');
+
+                  // chat-room 요소를 숨기거나 보이게 설정
+                  chatRoomElements.forEach(function(chatRoomElement) {
+                    const dataChatRoomId = chatRoomElement.getAttribute('data-chat-room-id');
+                    if (chatRoomIdToHide.includes(parseInt(dataChatRoomId))) {
+                      chatRoomElement.style.display = 'block';
+                    }
+                    else {
+                      chatRoomElement.style.display = 'none';
+                    }
+                  });
+                }, 
+                error: function() {
+                
+                  }
+              });
+            }
+            else {
+              $.ajax({
+                url: '/filter_chat_rooms/',
+                type: 'GET',
+                data: {
+                    unread_checkbox: isChecked
+                },
+                success: function(data) {
+                  var chatRoomIdToShow = new Array();
+                  data.originchatRooms.forEach(function (chatRoomData) {
+                    chatRoomIdToShow.push(chatRoomData.id)
+                  });
+                  const chatRoomElements = document.querySelectorAll('.chat-room');
+                  // chat-room 요소를 숨기거나 보이게 설정
+                  chatRoomElements.forEach(function(chatRoomElement) {
+                    const dataChatRoomId = chatRoomElement.getAttribute('data-chat-room-id');
+                    if (chatRoomIdToShow.includes(parseInt(dataChatRoomId))) {
+                      chatRoomElement.style.display = 'block';
+                    }
+                  });
+                },
+                error: function() {
+                
+                  }
+              });
+            }
+        });
+      });
+
+
         const chatMessages= document.getElementById('chat-messages');
         function scrollToBottom() {
           chatMessages.scrollTop = chatMessages.scrollHeight;
@@ -52,59 +179,7 @@
         function prepareScroll() {
           window.setTimeout(scrollToBottom, 50);
         }
-        /*
-        채팅방 리스트 필터링을 위한 부분 아직 미완성
-        const unreadCheckbox = document.getElementById('unread-checkbox');
 
-        $(document).ready(function() {
-          $("#unread-checkbox").change(function() {
-              // 체크박스 상태 가져오기
-              var isChecked = this.checked;
-      
-              // 서버에 체크박스 상태를 전송
-              if (isChecked) {
-                $.ajax({
-                  url: '/filter_chat_rooms/',
-                  type: 'GET',
-                  data: {
-                      unread_checkbox: isChecked
-                  },
-                  success: function(data) {
-                    const chatRoomsContainer = document.querySelector('.chat-real-select-container');
-                    chatRoomsContainer.innerHTML = '';
-                    data.chatRooms.forEach(function (chatRoomData) {
-                      // 각 채팅방 데이터를 사용하여 HTML을 생성하고 목록에 추가
-                      const chatRoomElement = document.createElement('a');
-                      chatRoomElement.className = 'chat-room';
-                      chatRoomElement.setAttribute('data-chat-room-id', chatRoomData.id);
-                      const chatroomdataHTML = `
-                        <div class="flex-box chat-box between">
-                          <div>
-                            <div class="flex-box">
-                                <p class="bold">${ chatRoomData.email}</p>
-                                <p class="s-text">${ chatRoomData.wt_location }</p>
-                                <p class="s-text">${ chatRoomData.created_at }</p>
-                            </div>
-                            <p class="chat-thumb-text">${ chatRoomData.title }</p>
-                          </div>
-                          <div class="thumbnail-box">
-                            <img src="" alt="">
-                          </div>
-                        </div>
-                      `
-                      chatRoomElement.innerHTML = chatroomdataHTML;
-                      chatRoomsContainer.appendChild(chatRoomElement);
-                    });
-                  },
-                  error: function() {
-                   
-                    }
-                });
-              }
-              
-          });
-      });
-      */
         // 클릭 이벤트 핸들러 등록
         document.querySelectorAll('.chat-room').forEach(function (chatRoomElement) {
             chatRoomElement.addEventListener('click', function () {
@@ -118,9 +193,6 @@
             }
             const chatRoomId = chatRoomElement.getAttribute('data-chat-room-id');
             const chatMessagesContainer = document.getElementById('chat-messages-container');
-            
-
-
             // AJAX 요청 (GET)
             $.ajax({
                 url: "/get_contact_info/",
@@ -130,11 +202,16 @@
                     const contact = document.getElementById("temp-info");
                     const content = document.getElementById("chat-messages");
                     const product = document.getElementById("product_detail");
+                    const product_status = document.getElementById("status");
+                    const product_img = document.querySelector('.selected-thumbnail-box')
+
                     let prevTime = null;
                     // 서버로부터 받은 데이터를 화면에 표시
                     contact.innerHTML = `<p>${data.contactInfo}</p>`;
                     product.innerHTML = `<p>${data.titleInfo}</p>
                     <p class="bold">${data.priceInfo}</p>`;
+                    product_status.innerHTML = `<p>${data.statusInfo}</p>`
+                    product_img.innerHTML = `<img src="${data.productimgInfo}">`
                     content.innerHTML = '';
                     data.messages.forEach(function (messageData) {
                       const messageContainer = document.createElement('div');
@@ -188,6 +265,7 @@
                   check = false;
                 }
                 handleIncomingMessage(data.message, check);
+                updateLastMessage(chatRoomId, data.message)
                 prepareScroll();
               };
       
@@ -237,7 +315,7 @@
 
               <!-- 아이디및 체크박스 -->
               <div class="id-box flex-box between">
-                {{ request.user.email }}
+                {{ request.user.nickname }}
                 <div>
                   <label>
                     안읽은 메세지만 보기
@@ -264,16 +342,26 @@
                 {% for chat_room in chat_rooms %}
                 <a class="chat-room" data-chat-room-id="{{ chat_room.id }}">
                     <div class="flex-box chat-box between">
+                      <div class="human-profile">
+                        {% if chat_room.post_id.author.user_img %}
+                          <img src="{{ chat_room.post_id.author.user_img }}" alt="">
+                        {% elif chat_room.post_id.author.user_img == null %}
+                          <img src="{% static 'img/basicuserimg.png' %}">
+                        {% else %}
+                          <img src="{% static 'img/basicuserimg.png' %}">
+                        {% endif %}
+                        
+                      </div>
                         <div>
                             <div class="flex-box">
-                                <p class="bold">{{ chat_room.post_id.author.email }}</p>
+                                <p class="bold">{{ chat_room.post_id.author.nickname }}</p>
                                 <p class="s-text">{{ chat_room.post_id.wt_location }}</p>
-                                <p class="s-text">{{ chat_room.created_at|custom_timesince }}</p>
+                                <p class="s-text set_time">{{ chat_room.created_at|custom_timesince }}</p>
                             </div>
-                            <p class="chat-thumb-text">{{ chat_room.post_id.title }}</p>
+                            <p class="chat-thumb-text">{{ chat_room.chatmessage_set.last.content }}</p>
                         </div>
                         <div class="thumbnail-box">
-                            <img src="" alt="">
+                            <img src="{{ chat_room.post_id.postimage_set.first.image.url }}" alt="">
                         </div>
                     </div>
                 </a>
@@ -283,14 +371,14 @@
                     <div class="flex-box chat-box between">
                         <div>
                             <div class="flex-box">
-                                <p class="bold">{{ receive_chat_room.user.email }}</p>
+                                <p class="bold">{{ receive_chat_room.user.nickname }}</p>
                                 <p class="s-text">{{ receive_chat_room.post_id.wt_location }}</p>
-                                <p class="s-text">{{ receive_chat_room.created_at|custom_timesince }}</p>
+                                <p class="s-text set_time">{{ receive_chat_room.created_at|custom_timesince }}</p>
                             </div>
-                            <p class="chat-thumb-text">{{ receive_chat_room.post_id.title }}</p>
+                            <p class="chat-thumb-text">{{ receive_chat_room.chatmessage_set.last.content }}</p>
                         </div>
                         <div class="thumbnail-box">
-                            <img src="" alt="">
+                            <img src="{{ receive_chat_room.post_id.postimage_set.first.image.url }}" alt="">
                         </div>
                     </div>
                 </a>
@@ -309,12 +397,12 @@
               <div class="goods-box flex-box between">
                 <div class="flex-box">
                   <div class="selected-thumbnail-box">
-                    <img src="{% static "img/daangn.jpg" %}" alt="">
+                    
                   </div>
                   <div class="goods-info-box" id='product_detail'>
                   </div>
                 </div>
-                <button>거래완료</button>
+                <div id='status'></div>
               </div>
       
               <!--채팅창 메인-->

@@ -42,6 +42,26 @@
         });
       });
     });
+    function changeStatus(postId) {
+      $.ajax({
+          url: `/change_status/${postId}/`,
+          type: 'GET',
+          success: function(response) {
+              if (response.success) {
+                  // 상태 변경이 성공적으로 완료되었을 때 수행할 동작
+                  location.reload();  // 페이지 새로 고침 또는 상태를 업데이트하는 로직을 추가하세요.
+              } else {
+                  // 상태 변경 실패 시 처리
+                  alert('상태 변경 실패: ' + response.error_message);
+              }
+          },
+          error: function() {
+              // AJAX 요청 실패 시 처리
+              alert('상태 변경 요청 실패');
+          }
+      });
+    }
+
   </script>
   <body>
     {% include 'daangn_app/nav.html' %}
@@ -71,7 +91,13 @@
                   <a href="{% url 'daangn_app:edit' post.id %}">
                     <button class="grey">수정하기</button>
                   </a>
-                  <button class="orange">채팅보기</button>
+                  {% if post.status == "판매중" %}
+                    <button class="grey" onclick="changeStatus({{ post.id }})">거래완료</button>
+                  {% endif %}
+                  <a href="{% url "daangn_app:chat" %}">
+                    <button class="orange">채팅보기</button>
+                  </a>
+
                   <form method="post" action="{% url 'daangn_app:delete_post' post.id %}">
                     {% csrf_token %}
                     <button type="submit" class="red">삭제하기</button>
