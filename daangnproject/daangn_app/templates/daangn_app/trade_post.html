@@ -11,6 +11,7 @@
   <link rel="stylesheet" type="text/css" href="{% static 'css/trade_post.css' %}" />
   <link rel="stylesheet" type="text/css" href="{% static 'css/nav.css' %}" />
   <link rel="stylesheet" type="text/css" href="{% static 'css/footer.css' %}" />
+  <link rel="stylesheet" type="text/css" href="{% static 'css/img_slider.css' %}" />
   <title>중고거래 상세보기</title>
 </head>
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -70,9 +71,17 @@
         <div class="post-box">
           {% block content %}
           {% if images %}
-            {% for image in images %}
-              <img src="{{ image.image.url }}" alt="{{ post.title }}">
-            {% endfor %}
+          <div id="slideShow">
+            <ul class="slides">
+              {% for image in images %}
+                <li><img src="{{ image.image.url }}" alt="{{ post.title }}"></li>
+              {% endfor %}
+            </ul>  
+            <p class="controller">
+              <span class="prev">&lang;</span>  
+              <span class="next">&rang;</span>
+            </p>
+          </div>
           {% else %}
             <img>
           {% endif %}
@@ -119,6 +128,11 @@
                 <h3>{{ post.price |intcomma}}
                   원</h3>
               </div>
+              <div class="post-sub-info-box">
+                <span ><a class="category" href="{% url 'daangn_app:trade_category' post.category %}">{{post.category}}</a></span>
+                <span>∙</span>
+                <span id="post_time">{{ post.created_at|date:'Y-m-d H:i' }}</span>
+              </div>
               <p>{{ post.description }}</p>
               <div class="location-views-box flex-box between">
                 <p>희망 거래장소 |
@@ -134,5 +148,5 @@
     {% include 'daangn_app/footer.html' %}
 
 </body>
-
+<script src="{% static 'js/trade_post.js' %}"></script>
 </html>

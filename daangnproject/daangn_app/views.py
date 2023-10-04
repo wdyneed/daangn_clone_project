@@ -2,7 +2,15 @@ from django.shortcuts import render, redirect, get_object_or_404, reverse
 from .models import Post, PostImage, chatroom, ChatMessage, User, DisconnectInfo
 from .forms import PostForm, LoginForm, UpdateNicknameForm
 from django.contrib import messages
-from django.db.models import Q, F, ExpressionWrapper, Exists, OuterRef, Subquery, DateTimeField
+from django.db.models import (
+    Q,
+    F,
+    ExpressionWrapper,
+    Exists,
+    OuterRef,
+    Subquery,
+    DateTimeField,
+)
 from .serializers import PostSerializer, PostImageSerializer
 from rest_framework import viewsets, status
 from rest_framework.response import Response
@@ -227,6 +235,15 @@ def trade_view(request):
     return render(request, "daangn_app/trade.html", {"posts": posts})
 
 
+def trade_view_category(request, category):
+    posts = Post.objects.filter(category=category)
+    context = {
+        "posts": posts,
+        "category": category,
+    }
+    return render(request, "daangn_app/trade_category.html", context)
+
+
 def trade_post_view(request, post_id):
     """
     판매제품 상세 페이지 함수
@@ -240,7 +257,9 @@ def trade_post_view(request, post_id):
         post.view_count += 1
         post.save()
         request.session["post_viewed_%s" % post_id] = True
-    return render(request, "daangn_app/trade_post.html", {"post": post, "images": images})
+    return render(
+        request, "daangn_app/trade_post.html", {"post": post, "images": images}
+    )
 
 
 def author_detail_view(request, author):

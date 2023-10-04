@@ -100,6 +100,15 @@ hr {
     gap: 16px;
 }
 
+.post-sub-info-box span {
+    opacity: 0.5;
+}
+
+.category {
+    color: #000;
+    text-decoration: underline;
+}
+
 .location-views-box {
     opacity: 0.5;
     margin-top: 40px;
