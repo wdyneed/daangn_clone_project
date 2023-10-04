@@ -1,4 +1,4 @@
-nav{
+nav {
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -13,16 +13,16 @@ nav{
     padding: 14px 0;
 }
 
-.logo{
+.logo {
     margin-right: 68px;
 }
 
-.nav-buttons{
+.nav-buttons {
     display: flex;
     gap: 20px;
 }
 
-.nav-buttons a button{
+.nav-buttons a button {
     font-size: 18px;
     border: none;
     background-color: transparent;
@@ -30,16 +30,22 @@ nav{
 
 }
 
-.ghost-button{
+.ghost-button {
     font-size: 16px;
     padding: 6px 16px;
     text-decoration: none;
     border: 1px solid #d7d7d7;
+    color: #7e7e7e;
 }
 
-.orange{
+.orange {
     color: #fa6616;
     border: 1px solid #fa6616;
+}
+
+.green {
+    color: #1caf0f;
+    border: 1px solid #1caf0f;
 }
 
 .search {
@@ -48,9 +54,10 @@ nav{
     padding: 6px 16px;
     font-size: 16px;
     border: none;
+    border-radius: 0;
 }
 
-.orange-text{
+.orange-text {
     color: #fa6616;
-    
+
 }

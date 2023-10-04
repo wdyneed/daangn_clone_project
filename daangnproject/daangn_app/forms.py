@@ -22,8 +22,8 @@ class ImageUploadForm(forms.ModelForm):
 
 
 class LoginForm(forms.Form):
-    email = forms.EmailField()
-    password = forms.CharField(widget=forms.PasswordInput)
+    email = forms.EmailField(label="이메일")
+    password = forms.CharField(widget=forms.PasswordInput, label="비밀번호")
 
     def clean(self):
         cleaned_data = super().clean()
@@ -48,19 +48,27 @@ class RegisterForm(forms.ModelForm):
         fields = (
             "first_name",
             "last_name",
+            "nickname",
             "email",
         )
 
-    password = forms.CharField(widget=forms.PasswordInput)
-    password1 = forms.CharField(widget=forms.PasswordInput, label="Confirm Password")
+    password = forms.CharField(widget=forms.PasswordInput, label="비밀번호")
+    password1 = forms.CharField(widget=forms.PasswordInput, label="비밀번호 확인")
 
     def clean_password1(self):
         password = self.cleaned_data.get("password")
         password1 = self.cleaned_data.get("password1")
         if password != password1:
-            raise forms.ValidationError("Password confirmation does not match")
+            raise forms.ValidationError("비밀번호가 일치하지 않습니다.")
         else:
             return password
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["first_name"].label = "성"
+        self.fields["last_name"].label = "이름"
+        self.fields["email"].label = "이메일"
+        self.fields["nickname"].label = "사용할 별명"
 
     def save(self, *args, **kwargs):
         user = super().save(commit=False)
@@ -71,20 +79,22 @@ class RegisterForm(forms.ModelForm):
         user.save()
 
 
-# 내정보 수정기능 (미완성, 일단 예시로 이메일이랑 이름 수정 테스트중)
-class UpdateUserInfoForm(forms.ModelForm):
+# 내정보 수정기능 (테스트중)
+class UpdateNicknameForm(forms.ModelForm):
+    profile_image = forms.ImageField(label="변경할 이미지", required=False)
+
     class Meta:
         model = models.User
-        fields = (
-            "first_name",
-            "last_name",
-            "email",
-        )
+        fields = ["nickname", "profile_image"]
+        labels = {"nickname": "별명"}
 
     def save(self, commit=True):
         user = super().save(commit=False)
-        user.username = self.cleaned_data["email"]
+
+        profile_image = self.cleaned_data.get("profile_image")
+        if profile_image:
+            user.user_img = profile_image
+
         if commit:
             user.save()
         return user
-
