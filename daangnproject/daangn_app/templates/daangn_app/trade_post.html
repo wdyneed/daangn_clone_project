@@ -89,7 +89,7 @@
             <div class="flex-box between info-button-box">
               <div class="user-info">
                 <a href="{% url "daangn_app:author_detail" post.author.id %}" style="text-decoration: none; color: inherit;">
-                  <h6>{{ post.author.email }}</h6>
+                  <h6>{{ post.author.nickname }}</h6>
                 </a>
                 <p>{{ post.author.userinfo.location }}</p>
                 <p>{{ post.images.url }}</p>
