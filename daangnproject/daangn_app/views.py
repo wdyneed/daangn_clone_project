@@ -140,14 +140,14 @@ def create_chat_room(request):
         chatnum = chatroom.objects.filter(post_id_id=post).count()
         # 이미 생성된 채팅방이 있는지 확인
         chat_room = chatroom.objects.filter(post_id_id=post, user_id=current_user).first()
-
+        post.chat_num = chatnum
+        post.save()
         if not chat_room:
             # 채팅방이 없으면 새로운 채팅방 생성
             chat_room = chatroom.objects.create(
                 post_id_id=post.id, user_id=current_user.id, created_at=timezone.now()
             )
-            post.chat_num = chatnum
-            post.save()
+            
         # 생성된 채팅방의 ID를 클라이언트에게 반환
         return JsonResponse({"chat_room_id": chat_room.id})
 
