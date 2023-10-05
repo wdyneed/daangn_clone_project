@@ -102,8 +102,32 @@
 
     let chatSocket = null;
     document.addEventListener('DOMContentLoaded', function () {
-      const unreadCheckbox = document.getElementById('unread-checkbox');
       
+      const searchInput = document.getElementById('chat_search');
+
+      // 입력창에 입력할 때마다 이벤트 리스너를 추가합니다.
+      searchInput.addEventListener('input', function () {
+        // 입력 내용을 가져옵니다.
+        const searchText = this.value.toLowerCase();
+
+        // 채팅방 리스트를 가져오고, 각 채팅방을 순회하면서 검색어와 일치하는지 확인합니다.
+        const chatRoomElements = document.querySelectorAll('.chat-room');
+        
+        chatRoomElements.forEach(function (chatRoomElement) {
+          // 채팅방의 제목을 가져옵니다.
+          const titleElement = chatRoomElement.querySelector('.posttitle');
+          const titleText = titleElement.textContent.toLowerCase();
+          
+          const nicknameElement = chatRoomElement.querySelector('.n-name');
+          const nicknameText = nicknameElement.textContent.toLowerCase();
+          // 검색어와 일치하는지 확인합니다.
+          if (titleText.includes(searchText) || nicknameText.includes(searchText)) {
+            chatRoomElement.style.display = 'block';
+          } else {
+            chatRoomElement.style.display = 'none';
+          }
+        });
+      });
     
       $(document).ready(function() {
         $("#unread-checkbox").change(function() {
@@ -305,8 +329,12 @@
   </script>
   <body class="back-ye">
     {% include 'daangn_app/nav.html' %}
+    
     <div class="content-box">
       <div class="container column">
+        <div>
+          <input type="text" placeholder="채팅 검색" id="chat_search">
+        </div>
         <div class="post-box flex-box">
 
           <!-- 채팅선택창 -->
@@ -345,7 +373,7 @@
                       <div class="human-profile">
                         {% if chat_room.post_id.author.user_img %}
                           <img src="{{ chat_room.post_id.author.user_img.url }}" alt="">
-                        {% elif chat_room.post_id.author.user_img == null %}
+                        {% elif chat_room.post_id.author.user_img.url == null %}
                           <img src="{% static 'img/basicuserimg.png' %}">
                         {% else %}
                           <img src="{% static 'img/basicuserimg.png' %}">
@@ -354,9 +382,10 @@
                       </div>
                         <div>
                             <div class="flex-box">
-                                <p class="bold">{{ chat_room.post_id.author.nickname }}</p>
+                                <p class="bold n-name">{{ chat_room.post_id.author.nickname }}</p>
                                 <p class="s-text">{{ chat_room.post_id.wt_location }}</p>
                                 <p class="s-text set_time">{{ chat_room.created_at|custom_timesince }}</p>
+                                <p class='posttitle' style="display:none;"> {{ chat_room.post_id.title }}</p>
                             </div>
                             <p class="chat-thumb-text">{{ chat_room.chatmessage_set.last.content }}</p>
                         </div>
@@ -369,11 +398,22 @@
                 {% for receive_chat_room in receive_chat_rooms %}
                 <a class="chat-room" data-chat-room-id="{{ receive_chat_room.id }}">
                     <div class="flex-box chat-box between">
+                      <div class="human-profile">
+                        {% if receive_chat_room.post_id.author.user_img %}
+                          <img src="{{ receive_chat_room.post_id.author.user_img.url }}" alt="">
+                        {% elif receive_chat_room.post_id.author.user_img.url == null %}
+                          <img src="{% static 'img/basicuserimg.png' %}">
+                        {% else %}
+                          <img src="{% static 'img/basicuserimg.png' %}">
+                        {% endif %}
+                        
+                      </div>
                         <div>
                             <div class="flex-box">
-                                <p class="bold">{{ receive_chat_room.user.nickname }}</p>
+                                <p class="bold n-name">{{ receive_chat_room.user.nickname }}</p>
                                 <p class="s-text">{{ receive_chat_room.post_id.wt_location }}</p>
                                 <p class="s-text set_time">{{ receive_chat_room.created_at|custom_timesince }}</p>
+                                <p class='posttitle' style="display:none;"> {{ receive_chat_room.post_id.title }}</p>
                             </div>
                             <p class="chat-thumb-text">{{ receive_chat_room.chatmessage_set.last.content }}</p>
                         </div>

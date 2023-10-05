@@ -126,7 +126,6 @@ def filter_chat_rooms(request):
             n_data.append(n_d)
         
         return JsonResponse({'chatRooms': r_data, 'originchatRooms':n_data})
-            
     
 def create_chat_room(request):
     """
@@ -223,7 +222,7 @@ def search_view(request):
     """
     search_query = request.GET.get("search", "")
     posts = Post.objects.filter(
-        Q(title__icontains=search_query) | Q(description__icontains=search_query)
+        Q(title__icontains=search_query) | Q(description__icontains=search_query) | Q(wt_location__icontains=search_query)
     ).distinct()
     context = {"posts": posts, "search_query": search_query}
 
