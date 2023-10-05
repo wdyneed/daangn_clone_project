@@ -57,4 +57,5 @@ urlpatterns = [
         PostImageViewSet.as_view({"post": "create"}),
         name="post-image",
     ),
+    path("create_or_join_chatroom/", views.create_or_join_chatroom, name="create_or_join_chatroom"),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

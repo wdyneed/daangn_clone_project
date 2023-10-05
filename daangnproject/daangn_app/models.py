@@ -78,7 +78,19 @@ class ChatMessage(models.Model):
     send_at = models.DateTimeField(auto_now_add=True)
     chat_img = models.ImageField(upload_to="chat")
 
+class ai_chatroom(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    ai = models.PositiveIntegerField(default=1)
+    created_at = models.DateTimeField(auto_now_add=True)
 
+class ai_ChatMessage(models.Model):
+    chatroom_id = models.ForeignKey(ai_chatroom, on_delete=models.CASCADE)
+    content = models.TextField()
+    sender = models.PositiveIntegerField()
+    send_at = models.DateTimeField(auto_now_add=True)
+        
+    
+    
 # 이미지 업로드 경로
 def image_upload_path(instance, filename):
     return f"{instance.post.id}/{filename}"

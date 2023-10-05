@@ -16,7 +16,7 @@
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script>
     let prevTime2 = null
-
+    
     {% comment %} 시간 포매팅 함수 {% endcomment %}
     function formatTimeAgo(timestamp) {
       const messageTime = new Date(timestamp);
@@ -128,6 +128,8 @@
           }
         });
       });
+
+      
     
       $(document).ready(function() {
         $("#unread-checkbox").change(function() {
@@ -203,6 +205,121 @@
         function prepareScroll() {
           window.setTimeout(scrollToBottom, 50);
         }
+
+        const aiChatElement = document.getElementById('ai-chat');
+
+        aiChatElement.addEventListener('click', function() {
+          createChatroom();
+        })
+
+        function createChatroom() {
+          if (chatSocket !== null && chatSocket.readyState === WebSocket.OPEN) {
+            chatSocket.close();
+          }
+          const chatRoomId = {{ request.user.id }};
+          const chatMessagesContainer = document.getElementById('chat-messages-container');
+          const ai_status = document.getElementById('status');
+          let prevTime = null;
+          $.ajax({
+            url: "/create_or_join_chatroom/",
+            type: "GET",
+            data: { chat_room_id : chatRoomId },
+            success: function (data) {
+              const content = document.getElementById("chat-messages");
+              const ai_name = document.getElementById("product_detail");
+              const ai_img = document.querySelector('.selected-thumbnail-box')
+    
+              ai_name.innerHTML = `<p>AI 챗봇</p>`;
+              ai_img.innerHTML = `<img src="{% static "img/icon_aibot.png" %}">`;
+              content.innerHTML = '';
+              ai_status.innerHTML = '';
+              data.ai_messages.forEach(function (messageData) {
+                const messageContainer = document.createElement('div');
+                const timeContainer = document.createElement('p');
+                const date = new Date(messageData.send_at);
+                const options = {
+                  hour: '2-digit',
+                  minute: '2-digit',
+                  hour12: true, // true로 설정하면 오전/오후 형식으로 표시
+                };
+                const timeString = date.toLocaleTimeString('ko-kr', options);
+                messageContainer.textContent = messageData.content;
+                if (timeString !== prevTime) {
+                  timeContainer.textContent = timeString;
+                  prevTime = timeString;
+                }
+                
+                if (messageData.sender === {{ request.user.id }}) {
+                    messageContainer.classList.add('message-sent');
+                    timeContainer.classList.add('s-my-text');
+                } else {
+                    messageContainer.classList.add('message-received');
+                    timeContainer.classList.add('s-notmy-text');
+                }
+                content.appendChild(messageContainer);
+                if (timeContainer.textContent) {
+                  content.appendChild(timeContainer);
+                }
+                
+            });
+            prepareScroll();
+          },
+          error: function (error) {
+              console.error('Error:', error);
+          }
+      });
+      
+      if (chatSocket === null || chatSocket.readyState !== WebSocket.OPEN) {
+        chatSocket = new WebSocket(
+          `ws://${window.location.host}/ws/chat/ai/${chatRoomId}/`
+        );
+        var check = true;
+        
+        chatSocket.onmessage = function(e) {
+          const data = JSON.parse(e.data);
+          
+          if (parseInt(data.isSentByMe) == {{ request.user.id }}) {
+            check = true;
+          }
+          else{
+            check = false;
+          }
+          handleIncomingMessage(data.message, check);
+          prepareScroll();
+        };
+    
+        chatSocket.onclose = function(e) {
+            console.log('Chat socket closed');
+        };
+      }
+      
+    
+      document.querySelector('#message').focus();
+      document.querySelector('#message').addEventListener('keydown', function (e) {
+          if (e.key === 'Enter' || e.keyCode === 13) {  // enter, return
+            e.preventDefault();
+            const messageInputDom = document.querySelector('#message');
+            const message = messageInputDom.value.trim();
+            if (message) {
+              document.querySelector('#chat-message-submit').click();
+            }
+          }
+        });
+    
+      document.querySelector('#chat-message-submit').onclick = function(e) {
+          e.preventDefault();
+          const messageInputDom = document.querySelector('#message');
+          const message = messageInputDom.value.trim();
+          if (message) {
+            chatSocket.send(JSON.stringify({
+              'message': message
+            }));
+          }
+          
+          messageInputDom.value = '';
+          prepareScroll();
+      };
+    }
 
         // 클릭 이벤트 핸들러 등록
         document.querySelectorAll('.chat-room').forEach(function (chatRoomElement) {
@@ -294,7 +411,7 @@
               };
       
               chatSocket.onclose = function(e) {
-                  console.error('Chat socket closed unexpectedly');
+                  console.log('Chat socket closed');
               };
             }
             
@@ -356,7 +473,8 @@
             <!-- 채팅 리스트 -->
             <div class="chat-list-box flex-box column">
               <!-- 봇 -->
-              <div class="chat-box flex-box">
+              
+              <div class="chat-box flex-box" id="ai-chat" style="cursor: pointer;">
                 <div class="ai-profile">
                   <img src="{% static 'img/icon_aibot.png'%}" alt="">
                 </div>
@@ -365,6 +483,7 @@
                   <p class="chat-thumb-text">궁금한 내용을 물어보세요!</p>
                 </div>
               </div>
+             
               <!-- 채팅방리스트 -->
               <div class='chat-real-select-container'>
                 {% for chat_room in chat_rooms %}
