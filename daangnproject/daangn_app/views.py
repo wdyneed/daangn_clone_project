@@ -4,11 +4,6 @@ from .forms import PostForm, LoginForm, UpdateNicknameForm
 from django.contrib import messages
 from django.db.models import (
     Q,
-    F,
-    ExpressionWrapper,
-    Exists,
-    OuterRef,
-    Subquery,
     DateTimeField,
 )
 from .serializers import PostSerializer, PostImageSerializer
