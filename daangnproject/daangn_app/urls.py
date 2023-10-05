@@ -15,7 +15,9 @@ from .views import (
 app_name = "daangn_app"
 router = DefaultRouter()
 router.register(r"posts", PostViewSet)
-router.register(r"post/(?P<post_pk>[0-9]+)/images", PostImageViewSet, basename="post-image")
+router.register(
+    r"post/(?P<post_pk>[0-9]+)/images", PostImageViewSet, basename="post-image"
+)
 
 urlpatterns = [
     path("", views.main_view, name="main"),
@@ -26,7 +28,7 @@ urlpatterns = [
     path("write/", views.create_post, name="write"),
     path("edit/<int:post_id>/", views.edit_view, name="edit"),
     path("trade/", views.trade_view, name="trade"),
-    path("trade/<str:category>", views.trade_view_category, name="trade_category"),
+    path("trade/<path:category>", views.trade_view_category, name="trade_category"),
     path("post/<int:post_id>/", views.trade_post_view, name="post"),
     path("chat/", views.chat_view, name="chat"),
     path("author_detail/<str:author>/", views.author_detail_view, name="author_detail"),
@@ -45,14 +47,12 @@ urlpatterns = [
     ),
     path("get_contact_info/", views.get_contact_info, name="get_contact_info"),
     path("myinfo/", UpdateUserInfoView.as_view(), name="update_user_info"),
-    path('filter_chat_rooms/', views.filter_chat_rooms, name='filter_chat_rooms'),
-    path('change_status/<int:post_id>/', views.change_status, name='change_status'),
-    path('get_last_message/', views.get_last_message, name="get_last_message"),
-    path("api/post/<int:post_pk>/images/",
+    path("filter_chat_rooms/", views.filter_chat_rooms, name="filter_chat_rooms"),
+    path("change_status/<int:post_id>/", views.change_status, name="change_status"),
+    path("get_last_message/", views.get_last_message, name="get_last_message"),
+    path(
+        "api/post/<int:post_pk>/images/",
         PostImageViewSet.as_view({"post": "create"}),
-        name="post-image"),
+        name="post-image",
+    ),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
-        
-
-
-
