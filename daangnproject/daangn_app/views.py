@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect, get_object_or_404, reverse
-from .models import Post, PostImage, chatroom, ChatMessage, User, DisconnectInfo
+from .models import Post, PostImage, chatroom, ChatMessage, User, DisconnectInfo, ai_chatroom, ai_ChatMessage
 from .forms import PostForm, LoginForm, UpdateNicknameForm
 from django.contrib import messages
 from django.db.models import (
@@ -17,6 +17,8 @@ from django.http import JsonResponse
 from django.utils import timezone
 from asgiref.sync import sync_to_async
 from datetime import datetime
+from django.conf import settings
+import openai
 
 
 def main_view(request):
@@ -215,6 +217,11 @@ def create_chat_message(sender, content, chatroom_id, send_at):
     )
     chat_message.save()
 
+def create_aichat_message(sender, content, chatroom_id, send_at):
+    chat_message = ai_ChatMessage.objects.create(
+        sender=sender, content=content, chatroom_id=chatroom_id, send_at=send_at
+    )
+    chat_message.save()
 
 # 채팅방 시간 변경하는 함수
 def change_chatroom_time(chatroom_id):
@@ -222,6 +229,10 @@ def change_chatroom_time(chatroom_id):
     chat_room.created_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     chat_room.save()
 
+def change_aichatroom_time(chatroom_id):
+    chat_room = ai_chatroom.objects.filter(id=chatroom_id).first()
+    chat_room.created_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    chat_room.save()
 
 # ============================================= 채팅 기능 끝 ========================================================
 
@@ -559,3 +570,45 @@ def change_status(request, post_id):
         return JsonResponse({"success": True})
     except Post.DoesNotExist:
         return JsonResponse({"success": False, "error_message": "게시물을 찾을 수 없습니다."})
+
+
+# ================================================AI 챗봇=====================================================
+
+def create_or_join_chatroom(request):
+    if request.method == 'GET':
+        try:
+            user = int(request.user.id)
+            # 이미 참여 중인 채팅방이 있는지 확인합니다.
+            existing_chatroom = ai_chatroom.objects.filter(user_id=user).first()
+            if existing_chatroom:
+                chat_room_id = request.GET.get("chat_room_id")
+                ai_messages_data = []
+                ai_chat_message = ai_ChatMessage.objects.filter(chatroom_id = chat_room_id)
+                for m in ai_chat_message:
+                    ai_message_data = {
+                        "content" : m.content,
+                        "send_at" : m.send_at,
+                        "sender" : m.sender,
+                    }
+                    ai_messages_data.append(ai_message_data)
+                return JsonResponse({"success": True, "ai_messages": ai_messages_data})
+            else:
+                # 채팅방이 없으면 새로 생성합니다.
+                aichatroom = ai_chatroom(user_id=user)
+                aichatroom.save()
+                chat_room_id = request.GET.get("chat_room_id")
+                ai_messages_data = []
+                ai_chat_message = ai_ChatMessage.objects.filter(chatroom_id = chat_room_id)
+                for m in ai_chat_message:
+                    ai_message_data = {
+                        "content" : m.content,
+                        "send_at" : m.send_at,
+                        "sender" : m.sender,
+                    }
+                    ai_messages_data.append(ai_message_data)
+                return JsonResponse({"success": True, "ai_messages": ai_messages_data})
+                
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=400)
+    else:
+        return JsonResponse({'error': '잘못된 요청입니다.'}, status=400)
