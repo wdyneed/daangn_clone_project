@@ -107,10 +107,10 @@
                     <button class="orange">채팅보기</button>
                   </a>
 
-                  <form method="post" action="{% url 'daangn_app:delete_post' post.id %}">
+                  <form method="post" action="#" onsubmit="return false;">
                     {% csrf_token %}
-                    <button type="submit" class="delete_button">삭제하기</button>
-                  </form>
+                    <button type="button" class="delete_button" onclick="confirmDelete({{ post.id }})">삭제하기</button>
+                  </form>                  
                 </div>
               {% else %}
                 <div class="button-box">
@@ -149,4 +149,45 @@
 
 </body>
 <script src="{% static 'js/trade_post.js' %}"></script>
+<script>
+  // 삭제 버튼 클릭 시 확인 대화 상자 표시
+  function confirmDelete(postId) {
+    var confirmation = confirm("정말 삭제하시겠습니까?");
+    if (confirmation) {
+      $.ajax({
+        url: `/trade-post/${postId}/delete/`,  // URL 수정
+        type: 'POST',
+        data: {
+          csrfmiddlewaretoken: $("input[name=csrfmiddlewaretoken]").val()
+        },
+        success: function(response) {
+          if (typeof response !== "undefined" && response.success) {
+            // 게시물 삭제가 성공하면 게시물 목록 페이지로 리디렉션
+            window.location.href = "/trade/"; // 예시: 게시물 목록 페이지 URL
+          } else {
+            // 삭제 실패 시 처리
+            if (response.error_message) {
+              alert('게시물 삭제 실패: ' + response.error_message);
+            } else {
+              alert('게시물 삭제 실패');
+            }
+          }
+          // 확인 대화 상자 닫기
+          closeConfirmDialog();
+        },
+        error: function() {
+          alert('게시물 삭제 요청 실패');
+          // 확인 대화 상자 닫기
+          closeConfirmDialog();
+        }
+      });
+    }
+  }
+
+  // 확인 대화 상자 닫기 함수
+  function closeConfirmDialog() {
+    // 확인 대화 상자 닫기
+    $('.ui-dialog-buttonset').find('button:contains("확인")').trigger('click');
+  }
+</script>
 </html>
