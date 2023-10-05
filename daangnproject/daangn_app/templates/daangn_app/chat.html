@@ -209,10 +209,19 @@
         const aiChatElement = document.getElementById('ai-chat');
 
         aiChatElement.addEventListener('click', function() {
-          createChatroom();
+          createChatroom()
+          joinChatroom();
         })
 
         function createChatroom() {
+          const chatRoomId = {{ request.user.id }};
+          $.ajax({
+            url: "/create_aichatroom/",
+            type: "GET",
+          });
+        }
+
+        function joinChatroom() {
           if (chatSocket !== null && chatSocket.readyState === WebSocket.OPEN) {
             chatSocket.close();
           }
