@@ -94,7 +94,7 @@ class AIChatConsumer(AsyncWebsocketConsumer):
         is_sent_by_me = self.scope["user"].id
         w_n = User.objects.get(id=is_sent_by_me)
         user_room = int(self.user_room)
-        r_n = ai_chatroom.objects.get(id=user_room)
+        r_n = ai_chatroom.objects.get(user_id=user_room)
         curtime = timezone.now()
         
         create_aichat_message(w_n.id, message, r_n, curtime)

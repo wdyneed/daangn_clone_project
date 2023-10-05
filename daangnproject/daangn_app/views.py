@@ -576,39 +576,35 @@ def change_status(request, post_id):
 
 def create_or_join_chatroom(request):
     if request.method == 'GET':
-        try:
-            user = int(request.user.id)
-            # 이미 참여 중인 채팅방이 있는지 확인합니다.
-            existing_chatroom = ai_chatroom.objects.filter(user_id=user).first()
-            if existing_chatroom:
-                chat_room_id = request.GET.get("chat_room_id")
-                ai_messages_data = []
-                ai_chat_message = ai_ChatMessage.objects.filter(chatroom_id = chat_room_id)
-                for m in ai_chat_message:
-                    ai_message_data = {
-                        "content" : m.content,
-                        "send_at" : m.send_at,
-                        "sender" : m.sender,
-                    }
-                    ai_messages_data.append(ai_message_data)
-                return JsonResponse({"success": True, "ai_messages": ai_messages_data})
-            else:
-                # 채팅방이 없으면 새로 생성합니다.
-                aichatroom = ai_chatroom(user_id=user)
-                aichatroom.save()
-                chat_room_id = request.GET.get("chat_room_id")
-                ai_messages_data = []
-                ai_chat_message = ai_ChatMessage.objects.filter(chatroom_id = chat_room_id)
-                for m in ai_chat_message:
-                    ai_message_data = {
-                        "content" : m.content,
-                        "send_at" : m.send_at,
-                        "sender" : m.sender,
-                    }
-                    ai_messages_data.append(ai_message_data)
-                return JsonResponse({"success": True, "ai_messages": ai_messages_data})
-                
-        except Exception as e:
-            return JsonResponse({'error': str(e)}, status=400)
+        user = request.user
+        # 이미 참여 중인 채팅방이 있는지 확인합니다.
+        existing_chatroom = ai_chatroom.objects.filter(user=user).first()
+        if existing_chatroom:
+            chat_room_id = request.GET.get("chat_room_id")
+            ai_messages_data = []
+            ai_chat_message_temp = ai_ChatMessage.objects.filter(sender = chat_room_id).first()
+            ai_chat_message = ai_ChatMessage.objects.filter(chatroom_id = ai_chat_message_temp.chatroom_id)
+            for m in ai_chat_message:
+                ai_message_data = {
+                    "content" : m.content,
+                    "send_at" : m.send_at,
+                    "sender" : m.sender,
+                }
+                ai_messages_data.append(ai_message_data)
+            return JsonResponse({"success": True, "ai_messages": ai_messages_data})
+        return JsonResponse({"success" : True})
     else:
         return JsonResponse({'error': '잘못된 요청입니다.'}, status=400)
+    
+    
+def create_aichatroom(request):
+    if request.method == 'GET':
+        user = int(request.user.id)
+        existing_chatroom = ai_chatroom.objects.filter(user_id=user).first()
+        if existing_chatroom:
+            return JsonResponse({"success": True})
+        else:
+            aichatroom = ai_chatroom.objects.create(user_id=user)
+        return JsonResponse({"success": True})        
+    else:
+        return JsonResponse({'error': '잘못된 요청입니다.'}, status=400)  
