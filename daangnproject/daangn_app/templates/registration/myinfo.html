@@ -24,7 +24,7 @@
                 {% if user.user_img %}
                     <img src="{{ user.user_img.url }}" alt="Profile Image" class="current-profile-image">
                 {% else %}
-                    <p>No image</p>
+                <img src="{% static 'img/basicuserimg.png' %}" alt="Default Profile Image" class="default-profile-image">
                 {% endif %}
                 {{ update_form.profile_image.label_tag }} {{ update_form.profile_image }}
                 {{ update_form.nickname.label_tag }} {{ update_form.nickname }}                
