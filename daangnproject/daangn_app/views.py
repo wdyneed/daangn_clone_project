@@ -137,7 +137,7 @@ def create_chat_room(request):
         post_id = request.POST.get("post_id")
         post = Post.objects.get(id=post_id)
         current_user = request.user
-
+        chatnum = chatroom.objects.filter(post_id_id=post).count()
         # 이미 생성된 채팅방이 있는지 확인
         chat_room = chatroom.objects.filter(post_id_id=post, user_id=current_user).first()
 
@@ -146,7 +146,7 @@ def create_chat_room(request):
             chat_room = chatroom.objects.create(
                 post_id_id=post.id, user_id=current_user.id, created_at=timezone.now()
             )
-            post.chat_num += 1
+            post.chat_num = chatnum
             post.save()
         # 생성된 채팅방의 ID를 클라이언트에게 반환
         return JsonResponse({"chat_room_id": chat_room.id})
@@ -175,7 +175,10 @@ def get_contact_info(request):
         price_info = chat_room.post_id.price
         status_info = chat_room.post_id.status
         product_img = PostImage.objects.filter(post_id=chat_room.post_id).first()
-        product_img_info = product_img.image.url
+        if product_img:
+            product_img_info = product_img.image.url
+        else:
+            product_img_info = ''
         messages_data = []
         for message in chat_message:
             message_data = {
