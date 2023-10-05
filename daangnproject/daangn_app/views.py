@@ -233,7 +233,9 @@ def search_view(request):
     """
     search_query = request.GET.get("search", "")
     posts = Post.objects.filter(
-        Q(title__icontains=search_query) | Q(description__icontains=search_query) | Q(wt_location__icontains=search_query)
+        Q(title__icontains=search_query)
+        | Q(description__icontains=search_query)
+        | Q(wt_location__icontains=search_query)
     ).distinct()
     context = {"posts": posts, "search_query": search_query}
 
@@ -376,11 +378,13 @@ def edit_view(request, post_id):
     else:
         # GET 요청이면, 폼을 기존 게시물 데이터로 초기화
         form = PostForm(
-            instance=post,
             initial={
-                "category": post.category,
-                "wt_location": post.wt_location,
-            },
+                "title": post.title,
+                "price": post.price,
+                "description": post.description,
+                "category": post.category,  # 카테고리 초기화
+                "wt_location": post.wt_location,  # 판매 원하는 장소 초기화
+            }
         )
 
     # 폼과 게시물 객체를 템플릿에 전달

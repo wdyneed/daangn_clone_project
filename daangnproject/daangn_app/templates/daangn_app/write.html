@@ -81,7 +81,8 @@
             <!-- wt_location 필드 -->
             <div class="full-box">
               <label for="wt_location">판매 원하는 장소:</label>
-              <input type="text" name="wt_location" id="wt_location" required>
+              <input type="text" name="wt_location" id="wt_location" required
+                value="{% if post %}{{ post.wt_location }}{% endif %}">
             </div>
 
             <div class="submit-button-box">
