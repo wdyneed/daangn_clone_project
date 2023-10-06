@@ -20,5 +20,3 @@
 
 
 # 개발 환경
-
-![python-color](https://github.com/wdyneed/django_daangn_RightNow/assets/88184651/ffecb4c3-2a78-43f5-be86-e6a5866281ef)
