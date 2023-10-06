@@ -527,9 +527,9 @@
                 <a class="chat-room" data-chat-room-id="{{ receive_chat_room.id }}">
                     <div class="flex-box chat-box between">
                       <div class="human-profile">
-                        {% if receive_chat_room.post_id.author.user_img %}
-                          <img src="{{ receive_chat_room.post_id.author.user_img.url }}" alt="">
-                        {% elif receive_chat_room.post_id.author.user_img.url == null %}
+                        {% if receive_chat_room.post_id.user_id.user_img %}
+                          <img src="{{ receive_chat_room.post_id.user_id.user_img.url }}" alt="">
+                        {% elif receive_chat_room.post_id.user_id.user_img.url == null %}
                           <img src="{% static 'img/basicuserimg.png' %}">
                         {% else %}
                           <img src="{% static 'img/basicuserimg.png' %}">
