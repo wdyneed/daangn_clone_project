@@ -21,4 +21,4 @@
 
 # 개발 환경
 
-![Generic badge](https://img.shields.io/badge/{python}-{3.11.6}-{#3776AB}.svg)
+![Generic badge](https://img.shields.io/badge/python-3.11.6-#3776AB.svg)
