@@ -17,3 +17,8 @@
 + 검색 페이지 / search.html
 + 동네 인증 페이지 / location.html
 + 사용자 글 작성 목록 페이지 / author_detail.html
+
+
+# 개발 환경
+
+![Generic badge](https://img.shields.io/badge/{python}-{3.11.6}-{#3776AB}.svg)
