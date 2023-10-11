@@ -22,3 +22,4 @@
 # 개발 환경
 
 ![Generic badge](https://img.shields.io/badge/Python-3.11.4-green.svg)
+![Generic badge](https://img.shields.io/badge/Django-4.2.5-blue.svg)
