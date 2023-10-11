@@ -26,12 +26,13 @@
 
 #### Library
 |라이브러리|Version|
-|channels|3.0.4|
-|channels_redis|2.4.2|
-|daphne|3.0.2|
-|djangorestframework|3.14.0|
-|openai|0.28.1|
-|Pillow|10.0.1|
-|psycopg2-binary|2.9.7|
-|python-decouple|3.8|
+| ------ | ----------- |
+| channels | 3.0.4 |
+| channels_redis | 2.4.2 |
+| daphne | 3.0.2 |
+| djangorestframework | 3.14.0 |
+| openai | 0.28.1 |
+| Pillow | 10.0.1 |
+| psycopg2-binary | 2.9.7 |
+| python-decouple | 3.8 |
 
